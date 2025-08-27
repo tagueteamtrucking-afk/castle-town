@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Plaza — Fantasy Castle Town</title>
+  <link rel="stylesheet" href="../assets/css/town.css">
+  <!-- If your site already loads a global JS bundle (e.g., main.js) in index.html
+       and you navigate to this page SPA-style, you might not need the script tag below.
+       If this page loads by itself, include main.js: -->
+  <script defer src="../assets/js/main.js"></script>
+</head>
+<body class="plaza-body">
+  <header class="town-header glass">
+    <a class="brand" href="../index.html">⮐ Back to Town</a>
+    <h1>Plaza</h1>
+    <p class="subtitle">Summon everyone to the square</p>
+  </header>
+
+  <main class="plaza-main">
+    <section class="plaza-card glass">
+      <h2>Load All Characters</h2>
+      <p>Spawn all assistants together for training, ceremonies, or photo ops.</p>
+
+      <div class="btn-row">
+        <button class="btn btn-primary btn-xl" onclick="loadAllCharacters()">
+          ✨ Summon All 15
+        </button>
+
+        <button class="btn btn-outline" onclick="try{clearCharacters&&clearCharacters()}catch(e){}">
+          ⛔ Clear Plaza
+        </button>
+      </div>
+
+      <small class="helper">
+        Tip: VRM files live in <code>assets/models/</code> — lowercase, no spaces.
+      </small>
+    </section>
+
+    <section class="plaza-help glass">
+      <details>
+        <summary>Having trouble?</summary>
+        <ul>
+          <li>Open DevTools → Console to see any load errors.</li>
+          <li>Filenames must exactly match <code>*.vrm</code> listed in <code>assets/models/</code>.</li>
+          <li>If avatars overlap, the grid auto-arranger will space them out whenever the engine exposes <code>setCharacterPosition</code>.</li>
+        </ul>
+      </details>
+    </section>
+  </main>
+</body>
+</html>
