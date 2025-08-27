@@ -4,17 +4,28 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Fantasy Castle Town</title>
+
+  <!-- Styles -->
   <link rel="stylesheet" href="asset/css/style.css">
+
+  <!-- Fallback loader libs (used only if your site doesn't provide its own loader) -->
+  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.160.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://unpkg.com/@pixiv/three-vrm@2.0.6/lib/three-vrm.min.js"></script>
+
+  <!-- App JS -->
   <script defer src="asset/js/main.js"></script>
 </head>
 <body class="town-body">
   <header class="town-header glass">
     <h1>Fantasy Castle Town</h1>
-    <p class="subtitle">Pick a location to visit — or head to the Plaza to summon everyone.</p>
+    <p class="subtitle">Pick a location to visit — or scroll to the Plaza to summon everyone.</p>
   </header>
 
   <main class="town-grid">
-    <a class="card glass" href="pages/plaza.html">
+
+    <!-- Link card just scrolls to the Plaza section below -->
+    <a class="card glass" href="#plaza">
       <div class="tag">Plaza</div>
       <h2>Plaza (Load many characters together)</h2>
       <p>Summon all 15 assistants into the square.</p>
@@ -66,6 +77,26 @@
       <div class="tag">Palace</div><h2>Rey Czar</h2><p>Royal wing.</p>
     </a>
   </main>
+
+  <!-- Plaza lives on the same page -->
+  <section id="plaza" class="plaza-main">
+    <div class="plaza-card glass">
+      <h2>Plaza — Load All Characters</h2>
+      <p>Spawn all assistants together for training, ceremonies, or photo ops.</p>
+      <div class="btn-row">
+        <button class="btn btn-primary btn-xl" onclick="loadAllCharacters()">✨ Summon All 15</button>
+        <button class="btn btn-outline" onclick="try{clearCharacters&&clearCharacters()}catch(e){}">⛔ Clear Plaza</button>
+      </div>
+      <small class="helper">Tip: VRM files live in <code>asset/models/</code> — lowercase, no spaces.</small>
+    </div>
+
+    <div class="plaza-card glass">
+      <h2>Plaza Viewer</h2>
+      <p>If your site already renders elsewhere, this canvas simply stays idle.</p>
+      <div id="plaza-canvas-wrap"><canvas id="plaza-canvas"></canvas></div>
+      <pre id="log" class="console"></pre>
+    </div>
+  </section>
 
   <footer class="town-footer glass">
     <small>Tip: VRM files live in <code>asset/models/</code> — lowercase, no spaces.</small>
