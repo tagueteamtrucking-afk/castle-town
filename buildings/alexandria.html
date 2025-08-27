@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Grand Library — Alexandria</title>
+<link rel="stylesheet" href="../assets/css/style.css"/>
+</head>
+<body>
+<header class="topbar">
+  <a href="../index.html">« Town</a>
+  <h2>Alexandria — RPG Storymaster</h2>
+</header>
+
+<main class="wrap">
+  <div class="panel">
+    <h3>Start a Story Section</h3>
+    <div class="grid two">
+      <div>
+        <label>Main characters</label>
+        <textarea id="chars" class="input" rows="4" placeholder="Hero, Mentor, Rival..."></textarea>
+        <label>Main villain</label>
+        <input id="villain" class="input" placeholder="Name & traits"/>
+        <label>Core plot hook</label>
+        <textarea id="hook" class="input" rows="4" placeholder="The Lunar Crown was stolen..."></textarea>
+        <label>Dice roll</label>
+        <input id="roll" class="input" type="number" min="1" max="20" value="10"/>
+        <button id="run" class="btn">Roll & Write</button>
+      </div>
+      <div>
+        <h4>Draft Scene</h4>
+        <textarea id="scene" class="input" rows="14" placeholder="Draft will appear here..."></textarea>
+        <p class="small">After Alexandria finishes, Tracy turns it into a video; Overseers keep continuity.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script type="module" src="../assets/js/alexandria.js"></script>
+</body>
+</html>
