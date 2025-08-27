@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Cathedral Art Studio — Tracy</title>
+<link rel="stylesheet" href="../assets/css/style.css"/>
+</head>
+<body>
+<header class="topbar">
+  <a href="../index.html">« Town</a>
+  <h2>Tracy — Image & 3D Creation Studio</h2>
+</header>
+
+<main class="wrap">
+  <div class="panel">
+    <h3>Easel — Prompt an Image</h3>
+    <div class="grid two">
+      <div>
+        <label>Prompt</label>
+        <textarea id="prompt" class="input" rows="6" placeholder="A luminous stained-glass cathedral, moonlit..."></textarea>
+        <label class="small">Reference image (optional)</label>
+        <input type="file" id="refImg" accept="image/*" class="input"/>
+      </div>
+      <div>
+        <label>Output type</label>
+        <select id="outType" class="input">
+          <option>PNG</option><option>JPG</option><option>WEBP</option>
+        </select>
+        <div class="grid two">
+          <div><label class="small">Guidance</label><input id="guidance" class="input" type="number" min="1" max="20" value="7"/></div>
+          <div><label class="small">Steps</label><input id="steps" class="input" type="number" min="10" max="150" value="30"/></div>
+        </div>
+        <button id="generate" class="btn">Generate (preview)</button>
+        <p class="small">Frontend preview only. Later: plug any image API.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>Clay Sculpture — 3D Design</h3>
+    <div class="grid two">
+      <div>
+        <label>3D Prompt</label>
+        <textarea id="p3d" class="input" rows="4" placeholder="Game-ready hero character with fairy wings..."></textarea>
+        <button id="exportAvatar" class="btn">Easy Avatar Creation (guide)</button>
+        <button id="exportOBJ" class="btn">Export .OBJ (mock)</button>
+      </div>
+      <div>
+        <canvas id="preview" height="280"></canvas>
+        <p class="small">Goal: video-game quality videos for Alexandria’s stories, and 3D art to sell.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script type="module" src="../assets/js/tracy.js"></script>
+</body>
+</html>
