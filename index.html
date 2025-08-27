@@ -8,7 +8,7 @@
   <!-- Styles -->
   <link rel="stylesheet" href="asset/css/style.css">
 
-  <!-- Fallback loader libs (used only if your site doesn't provide its own loader) -->
+  <!-- Fallback loader libs (only used if no site engine is present) -->
   <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
   <script src="https://unpkg.com/three@0.160.0/examples/js/loaders/GLTFLoader.js"></script>
   <script src="https://unpkg.com/@pixiv/three-vrm@2.0.6/lib/three-vrm.min.js"></script>
@@ -17,86 +17,96 @@
   <script defer src="asset/js/main.js"></script>
 </head>
 <body class="town-body">
+
+  <!-- ======= TOWN VIEWER (3D) ======= -->
   <header class="town-header glass">
     <h1>Fantasy Castle Town</h1>
-    <p class="subtitle">Pick a location to visit — or scroll to the Plaza to summon everyone.</p>
+    <p class="subtitle">This is your live 3D plaza. Use the buttons to load models; the cards below also load into this viewer.</p>
   </header>
 
+  <section class="plaza-main" id="viewer">
+    <div class="plaza-card glass">
+      <h2>Town Viewer</h2>
+      <p>The models render here. If it’s blank, check the log below for path errors.</p>
+      <div id="plaza-canvas-wrap"><canvas id="town-canvas"></canvas></div>
+      <div class="btn-row" style="margin-top:12px">
+        <button class="btn btn-primary btn-xl" onclick="loadAllCharacters()">✨ Summon All 15</button>
+        <button class="btn btn-outline" onclick="try{clearCharacters&&clearCharacters()}catch(e){}">⛔ Clear</button>
+      </div>
+      <small class="helper">Tip: VRM files live in <code>asset/models/</code> — lowercase, no spaces.</small>
+      <pre id="log" class="console"></pre>
+    </div>
+  </section>
+
+  <!-- ======= MENU CARDS (clicks load into the viewer above) ======= -->
   <main class="town-grid">
 
-    <!-- Link card just scrolls to the Plaza section below -->
-    <a class="card glass" href="#plaza">
+    <a class="card glass" href="#" onclick="loadAllCharacters();document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
       <div class="tag">Plaza</div>
       <h2>Plaza (Load many characters together)</h2>
       <p>Summon all 15 assistants into the square.</p>
     </a>
 
-    <a class="card glass" href="#" onclick="loadCharacter('stella','asset/models/stella.vrm','Observatory & Apothecary');return false;">
+    <a class="card glass" href="#" onclick="loadCharacter('stella','asset/models/stella.vrm','Observatory & Apothecary');document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
       <div class="tag">Observatory & Apothecary</div><h2>Stella</h2><p>Yoga, meditation, sound therapy.</p>
     </a>
-    <a class="card glass" href="#" onclick="loadCharacter('tracy','asset/models/tracy.vrm','Cathedral Studio');return false;">
+
+    <a class="card glass" href="#" onclick="loadCharacter('tracy','asset/models/tracy.vrm','Cathedral Studio');document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
       <div class="tag">Cathedral Studio</div><h2>Tracy</h2><p>Creative director and image lab.</p>
     </a>
-    <a class="card glass" href="#" onclick="loadCharacter('alexandria','asset/models/alexandria.vrm','Grand Library');return false;">
+
+    <a class="card glass" href="#" onclick="loadCharacter('alexandria','asset/models/alexandria.vrm','Grand Library');document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
       <div class="tag">Grand Library</div><h2>Alexandria</h2><p>Keeper of the codex and records.</p>
     </a>
-    <a class="card glass" href="#" onclick="loadCharacter('jem','asset/models/jem.vrm','Dojo');return false;">
+
+    <a class="card glass" href="#" onclick="loadCharacter('jem','asset/models/jem.vrm','Dojo');document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
       <div class="tag">Dojo</div><h2>Jem</h2><p>Training, discipline, and flow.</p>
     </a>
-    <a class="card glass" href="#" onclick="loadCharacter('carol','asset/models/carol.vrm','Restaurant');return false;">
+
+    <a class="card glass" href="#" onclick="loadCharacter('carol','asset/models/carol.vrm','Restaurant');document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
       <div class="tag">Restaurant</div><h2>Carol</h2><p>Hospitality and events.</p>
     </a>
-    <a class="card glass" href="#" onclick="loadCharacter('nina','asset/models/nina.vrm','Blue Lab');return false;">
+
+    <a class="card glass" href="#" onclick="loadCharacter('nina','asset/models/nina.vrm','Blue Lab');document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
       <div class="tag">Blue Lab</div><h2>Nina</h2><p>Steam/cyber-punk experiments.</p>
     </a>
-    <a class="card glass" href="#" onclick="loadCharacter('charlotte','asset/models/charlotte.vrm','Relay Tower');return false;">
+
+    <a class="card glass" href="#" onclick="loadCharacter('charlotte','asset/models/charlotte.vrm','Relay Tower');document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
       <div class="tag">Relay Tower</div><h2>Charlotte</h2><p>Signals and comms.</p>
     </a>
-    <a class="card glass" href="#" onclick="loadCharacter('abbey','asset/models/abbey.vrm','Grand Vault');return false;">
+
+    <a class="card glass" href="#" onclick="loadCharacter('abbey','asset/models/abbey.vrm','Grand Vault');document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
       <div class="tag">Grand Vault</div><h2>Abbey</h2><p>Secure assets and variants.</p>
     </a>
-    <a class="card glass" href="#" onclick="loadCharacter('billie','asset/models/billie.vrm','Art Sales Mansion');return false;">
+
+    <a class="card glass" href="#" onclick="loadCharacter('billie','asset/models/billie.vrm','Art Sales Mansion');document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
       <div class="tag">Art Sales Mansion</div><h2>Billie</h2><p>Galleries and storefronts.</p>
     </a>
-    <a class="card glass" href="#" onclick="loadCharacter('odessa','asset/models/odessa.vrm','Museum Mansion');return false;">
+
+    <a class="card glass" href="#" onclick="loadCharacter('odessa','asset/models/odessa.vrm','Museum Mansion');document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
       <div class="tag">Museum Mansion</div><h2>Odessa</h2><p>Curator of artifacts.</p>
     </a>
-    <a class="card glass" href="#" onclick="loadCharacter('sorcha','asset/models/sorcha.vrm','Social Mansion');return false;">
+
+    <a class="card glass" href="#" onclick="loadCharacter('sorcha','asset/models/sorcha.vrm','Social Mansion');document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
       <div class="tag">Social Mansion</div><h2>Sorcha</h2><p>Content, video, and socials.</p>
     </a>
-    <a class="card glass" href="#" onclick="loadCharacter('themis','asset/models/themis.vrm','Chamber of Compliance');return false;">
+
+    <a class="card glass" href="#" onclick="loadCharacter('themis','asset/models/themis.vrm','Chamber of Compliance');document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
       <div class="tag">Chamber of Compliance</div><h2>Themis</h2><p>Policies and order.</p>
     </a>
-    <a class="card glass" href="#" onclick="loadCharacter('clarice','asset/models/clarice.vrm','City Hall');return false;">
+
+    <a class="card glass" href="#" onclick="loadCharacter('clarice','asset/models/clarice.vrm','City Hall');document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
       <div class="tag">City Hall</div><h2>Clarice</h2><p>Civic operations.</p>
     </a>
-    <a class="card glass" href="#" onclick="loadCharacter('whitestar','asset/models/whitestar.vrm','Palace');return false;">
+
+    <a class="card glass" href="#" onclick="loadCharacter('whitestar','asset/models/whitestar.vrm','Palace');document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
       <div class="tag">Palace</div><h2>White Star</h2><p>Royal wing.</p>
     </a>
-    <a class="card glass" href="#" onclick="loadCharacter('reyczar','asset/models/reyczar.vrm','Palace');return false;">
+
+    <a class="card glass" href="#" onclick="loadCharacter('reyczar','asset/models/reyczar.vrm','Palace');document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
       <div class="tag">Palace</div><h2>Rey Czar</h2><p>Royal wing.</p>
     </a>
   </main>
-
-  <!-- Plaza lives on the same page -->
-  <section id="plaza" class="plaza-main">
-    <div class="plaza-card glass">
-      <h2>Plaza — Load All Characters</h2>
-      <p>Spawn all assistants together for training, ceremonies, or photo ops.</p>
-      <div class="btn-row">
-        <button class="btn btn-primary btn-xl" onclick="loadAllCharacters()">✨ Summon All 15</button>
-        <button class="btn btn-outline" onclick="try{clearCharacters&&clearCharacters()}catch(e){}">⛔ Clear Plaza</button>
-      </div>
-      <small class="helper">Tip: VRM files live in <code>asset/models/</code> — lowercase, no spaces.</small>
-    </div>
-
-    <div class="plaza-card glass">
-      <h2>Plaza Viewer</h2>
-      <p>If your site already renders elsewhere, this canvas simply stays idle.</p>
-      <div id="plaza-canvas-wrap"><canvas id="plaza-canvas"></canvas></div>
-      <pre id="log" class="console"></pre>
-    </div>
-  </section>
 
   <footer class="town-footer glass">
     <small>Tip: VRM files live in <code>asset/models/</code> — lowercase, no spaces.</small>
