@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Observatory & Apothecary — Stella</title>
+<link rel="stylesheet" href="../assets/css/style.css"/>
+</head>
+<body>
+<header class="topbar">
+  <a href="../index.html">« Town</a>
+  <h2>Stella — Meditation • Sound • Hypnosis • NLP • Yoga</h2>
+</header>
+
+<main class="wrap">
+  <div class="panel grid two">
+    <div>
+      <h3>Guided Session</h3>
+      <label>Style</label>
+      <select id="style" class="input">
+        <option value="breath">Breath Focus</option>
+        <option value="body">Body Scan</option>
+        <option value="nlp">NLP Anchoring</option>
+        <option value="gateway">Gateway (hemi-sync style)</option>
+        <option value="yoga">Yoga Flow (gentle)</option>
+        <option value="hypno">Hypnotherapy Relaxation</option>
+      </select>
+      <label>Duration (minutes)</label>
+      <input id="mins" class="input" type="number" min="3" max="45" value="10"/>
+      <label>Voice</label>
+      <select id="voice" class="input"></select>
+      <div class="buttons">
+        <button id="start" class="btn">▶ Start Session</button>
+        <button id="stop" class="btn">■ Stop</button>
+      </div>
+      <p class="small">Plays via your device’s text-to-speech. Good for you and your wife together.</p>
+    </div>
+    <div>
+      <h3>Sound Bath</h3>
+      <div id="soundList" class="audio-list"></div>
+      <button id="stopAudio" class="btn">■ Stop All Sounds</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>Avatar (VRM)</h3>
+    <canvas id="vrmCanvas" height="360"></canvas>
+    <p class="small">Loads <code>assets/models/white_star.vrm</code> by default (use your best female voice avatar).</p>
+  </div>
+</main>
+
+<script type="module" src="../assets/js/stella.js"></script>
+</body>
+</html>
