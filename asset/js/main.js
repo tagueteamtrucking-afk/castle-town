@@ -1,208 +1,138 @@
 /* ===========================================================
-   Fantasy Castle Town — Main JS
-   - Safe, drop-in file.
-   - If your engine already defines loadCharacter/scene, those will be used.
-   - Otherwise, we initialize a minimal Three.js + VRM scene on the Plaza page.
+   Fantasy Castle Town — Main JS (iPad-friendly)
+   Uses your engine's loadCharacter if present; otherwise
+   provides a Plaza fallback scene + loader.
    =========================================================== */
 
-/* -----------------------
-   Detect Plaza environment
------------------------- */
 const IS_PLAZA = typeof document !== "undefined" && !!document.getElementById("plaza-canvas");
 
-/* -----------------------
-   Engine hooks (stubs)
------------------------- */
-// If a prior engine provided these, we will NOT override them.
-let __engineProvidedLoad = typeof loadCharacter === "function" ? loadCharacter : null;
+/* Simple on-page logger (handy on iPad without DevTools) */
+(function () {
+  const el = document.getElementById("log");
+  if (!el) return;
+  const write = (level, ...args) => {
+    const line = `[${level}] ${args.map(a => (typeof a === "string" ? a : JSON.stringify(a))).join(" ")}`;
+    el.textContent += line + "\n";
+    el.scrollTop = el.scrollHeight;
+  };
+  const origErr = console.error, origWarn = console.warn, origLog = console.log;
+  console.error = (...a)=>{ origErr(...a); write("error", ...a); };
+  console.warn  = (...a)=>{ origWarn(...a); write("warn ", ...a); };
+  console.log   = (...a)=>{ origLog(...a);  write("log  ", ...a); };
+})();
 
-// Keep a local registry for fallback scene
-const Fallback = {
-  scene: null,
-  renderer: null,
-  camera: null,
-  clock: null,
-  mixer: null,
-  avatars: {},  // name -> { vrm, obj3d }
-  loading: false
-};
+/* Engine hook (if your site already defines it, we won't override) */
+let __engineProvidedLoad = (typeof loadCharacter === "function") ? loadCharacter : null;
 
-/* -----------------------
-   Fallback Scene (Plaza)
------------------------- */
+/* Fallback scene store */
+const FB = { scene:null, renderer:null, camera:null, avatars:{}, clock:null };
+
+/* Init fallback Three.js scene (only on Plaza) */
 function initFallbackSceneIfNeeded() {
-  if (!IS_PLAZA || Fallback.scene) return;
-
+  if (!IS_PLAZA || FB.scene) return;
+  const wrap = document.getElementById("plaza-canvas-wrap");
   const canvas = document.getElementById("plaza-canvas");
-  const wrap   = document.getElementById("plaza-canvas-wrap");
-  if (!canvas || !wrap) return;
+  if (!wrap || !canvas || typeof THREE === "undefined") return;
 
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true, powerPreference:"high-performance" });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-  renderer.setSize(wrap.clientWidth, Math.max(380, Math.round(wrap.clientWidth * 0.56)));
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
-
-  const scene = new THREE.Scene();
-  scene.background = null;
-
-  const camera = new THREE.PerspectiveCamera(40, canvas.clientWidth / canvas.clientHeight, 0.1, 100);
-  camera.position.set(0, 1.5, 8);
-
-  // Lights
-  scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-  const dir = new THREE.DirectionalLight(0xffffff, 1.2);
-  dir.position.set(5, 8, 6);
-  scene.add(dir);
-
-  // Ground Grid (simple visual anchor)
-  const grid = new THREE.GridHelper(30, 30, 0x444444, 0x222222);
-  grid.position.y = -0.01;
-  scene.add(grid);
-
-  const clock = new THREE.Clock();
-
-  function onResize() {
+  const size = () => {
     const w = wrap.clientWidth;
     const h = Math.max(380, Math.round(w * 0.56));
     renderer.setSize(w, h, false);
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
-  }
-  window.addEventListener("resize", onResize);
+    if (FB.camera) { FB.camera.aspect = w/h; FB.camera.updateProjectionMatrix(); }
+  };
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(40, 16/9, 0.1, 100);
+  camera.position.set(0, 1.6, 10);
 
-  (function animate() {
+  scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+  const dir = new THREE.DirectionalLight(0xffffff, 1.2); dir.position.set(5,8,6); scene.add(dir);
+  const grid = new THREE.GridHelper(30, 30, 0x444444, 0x222222); grid.position.y = -0.01; scene.add(grid);
+
+  const clock = new THREE.Clock();
+  function animate() {
     requestAnimationFrame(animate);
     const dt = clock.getDelta();
-    Object.values(Fallback.avatars).forEach(a => {
-      if (a.vrm) a.vrm.update(dt);
-    });
+    Object.values(FB.avatars).forEach(a => { if (a.vrm) a.vrm.update(dt); });
     renderer.render(scene, camera);
-  })();
+  }
+  window.addEventListener("resize", size);
+  size(); animate();
 
-  // Save
-  Fallback.scene = scene;
-  Fallback.renderer = renderer;
-  Fallback.camera = camera;
-  Fallback.clock = clock;
+  FB.scene = scene; FB.renderer = renderer; FB.camera = camera; FB.clock = clock;
 
-  // Expose helpers used by loader
-  window.setCharacterPosition = function(name, x, y, z) {
-    const a = Fallback.avatars[name];
-    if (a && a.obj3d) a.obj3d.position.set(x, y, z);
-  };
-  window.clearCharacters = function() {
-    Object.entries(Fallback.avatars).forEach(([name, a]) => {
-      if (a && a.obj3d) {
-        Fallback.scene.remove(a.obj3d);
-      }
-    });
-    Fallback.avatars = {};
-  };
-  window.focusCameraOnPlaza = function() {
-    Fallback.camera.position.set(0, 1.6, 10);
-    Fallback.camera.lookAt(0, 1.4, 0);
-  };
+  // Expose helpers for grid & UI
+  window.setCharacterPosition = function(name, x,y,z){ const a=FB.avatars[name]; if(a&&a.obj) a.obj.position.set(x,y,z); };
+  window.clearCharacters = function(){ Object.values(FB.avatars).forEach(a=>{ if(a&&a.obj) FB.scene.remove(a.obj); }); FB.avatars={}; };
+  window.focusCameraOnPlaza = function(){ FB.camera.position.set(0,1.6,10); FB.camera.lookAt(0,1.4,0); };
 }
 
-/* -----------------------
-   Fallback loadCharacter
------------------------- */
-async function fallbackLoadCharacter(name, vrmPath /*, label */) {
+/* Fallback VRM load */
+async function fallbackLoadCharacter(name, vrmPath) {
   initFallbackSceneIfNeeded();
-  if (!Fallback.scene) {
-    console.warn("Fallback scene unavailable; cannot load VRM.");
-    return;
+  if (!FB.scene) { console.warn("No fallback scene available."); return; }
+  if (FB.avatars[name]) return; // already loaded
+
+  try {
+    const loader = new THREE.GLTFLoader();
+    const gltf = await new Promise((res, rej)=> loader.load(vrmPath, res, undefined, rej));
+    const vrm = await THREE.VRM.from(gltf);
+    const obj = vrm.scene;
+    obj.rotation.y = Math.PI;
+    FB.scene.add(obj);
+    FB.avatars[name] = { vrm, obj };
+  } catch (e) {
+    console.error("VRM load failed:", vrmPath, e.message || e);
   }
-
-  // Avoid duplicate add
-  if (Fallback.avatars[name]) return;
-
-  const loader = new THREE.GLTFLoader();
-  loader.crossOrigin = "anonymous";
-
-  const gltf = await new Promise((resolve, reject) => {
-    loader.load(
-      vrmPath,
-      (g) => resolve(g),
-      undefined,
-      (e) => reject(e)
-    );
-  });
-
-  // Convert to VRM
-  const vrm = await THREE.VRM.from(gltf);
-  const obj = vrm.scene;
-  obj.rotation.y = Math.PI; // face camera
-  Fallback.scene.add(obj);
-
-  Fallback.avatars[name] = { vrm, obj3d: obj };
 }
 
-/* -----------------------------------------------------------
-   Public loadCharacter (uses engine if available; else fallback)
------------------------------------------------------------- */
-window.loadCharacter = async function(name, vrmPath, label) {
+/* Public loader — use engine if available, else fallback */
+window.loadCharacter = async function(name, vrmPath, label){
   try {
-    if (__engineProvidedLoad) {
-      // Use the site’s real loader
-      return __engineProvidedLoad(name, vrmPath, label);
-    } else {
-      // Use minimal fallback (Plaza page only)
-      return await fallbackLoadCharacter(name, vrmPath, label);
-    }
-  } catch (e) {
-    console.error("loadCharacter error:", e);
-  }
+    if (__engineProvidedLoad) return __engineProvidedLoad(name, vrmPath, label);
+    return await fallbackLoadCharacter(name, vrmPath);
+  } catch (e) { console.error("loadCharacter error:", e); }
 };
 
-/* -----------------------------------------------------------
-   Multi-loader (Plaza “Summon All 15”)
------------------------------------------------------------- */
-window.loadAllCharacters = function() {
+/* Summon all 15 */
+window.loadAllCharacters = function(){
   const list = [
-    ["stella",     "assets/models/stella.vrm",      "Observatory & Apothecary"],
-    ["tracy",      "assets/models/tracy.vrm",       "Cathedral Studio"],
-    ["alexandria", "assets/models/alexandria.vrm",  "Grand Library"],
-    ["jem",        "assets/models/jem.vrm",         "Dojo"],
-    ["carol",      "assets/models/carol.vrm",       "Restaurant"],
-    ["nina",       "assets/models/nina.vrm",        "Blue Lab"],
-    ["charlotte",  "assets/models/charlotte.vrm",   "Relay Tower"],
-    ["abbey",      "assets/models/abbey.vrm",       "Grand Vault"],
-    ["billie",     "assets/models/billie.vrm",      "Art Sales Mansion"],
-    ["odessa",     "assets/models/odessa.vrm",      "Museum Mansion"],
-    ["sorcha",     "assets/models/sorcha.vrm",      "Social Mansion"],
-    ["themis",     "assets/models/themis.vrm",      "Chamber of Compliance"],
-    ["clarice",    "assets/models/clarice.vrm",     "City Hall"],
-    ["whitestar",  "assets/models/whitestar.vrm",   "Palace"],
-    ["reyczar",    "assets/models/reyczar.vrm",     "Palace"]
+    ["stella","asset/models/stella.vrm","Observatory & Apothecary"],
+    ["tracy","asset/models/tracy.vrm","Cathedral Studio"],
+    ["alexandria","asset/models/alexandria.vrm","Grand Library"],
+    ["jem","asset/models/jem.vrm","Dojo"],
+    ["carol","asset/models/carol.vrm","Restaurant"],
+    ["nina","asset/models/nina.vrm","Blue Lab"],
+    ["charlotte","asset/models/charlotte.vrm","Relay Tower"],
+    ["abbey","asset/models/abbey.vrm","Grand Vault"],
+    ["billie","asset/models/billie.vrm","Art Sales Mansion"],
+    ["odessa","asset/models/odessa.vrm","Museum Mansion"],
+    ["sorcha","asset/models/sorcha.vrm","Social Mansion"],
+    ["themis","asset/models/themis.vrm","Chamber of Compliance"],
+    ["clarice","asset/models/clarice.vrm","City Hall"],
+    ["whitestar","asset/models/whitestar.vrm","Palace"],
+    ["reyczar","asset/models/reyczar.vrm","Palace"]
   ];
+  list.forEach((row,i)=> setTimeout(()=>loadCharacter(row[0],row[1],row[2]), i*120));
 
-  // Load in sequence with a tiny stagger so UI stays responsive
-  list.forEach((row, i) => {
-    setTimeout(() => loadCharacter(row[0], row[1], row[2]), i * 120);
-  });
-
-  // Arrange into a neat grid if helpers exist
-  setTimeout(() => {
+  // Arrange grid if helpers exist
+  setTimeout(()=>{
     if (typeof setCharacterPosition === "function") {
-      const spacing = 2.2, perRow = 5, startX = -spacing * (perRow - 1) / 2, startZ = -spacing;
-      list.forEach((row, idx) => {
-        const r = Math.floor(idx / perRow), c = idx % perRow;
-        const x = startX + c * spacing, z = startZ + r * spacing;
-        try { setCharacterPosition(row[0], x, 0, z); } catch(_) {}
+      const spacing=2.2, perRow=5, startX=-spacing*(perRow-1)/2, startZ=-spacing;
+      list.forEach((row,idx)=> {
+        const r=Math.floor(idx/perRow), c=idx%perRow;
+        setCharacterPosition(row[0], startX+c*spacing, 0, startZ+r*spacing);
       });
     }
-    if (typeof focusCameraOnPlaza === "function") {
-      try { focusCameraOnPlaza(); } catch(_) {}
-    }
+    if (typeof focusCameraOnPlaza === "function") focusCameraOnPlaza();
   }, 1200);
 };
 
-/* -----------------------------------------------------------
-   Tiny quality-of-life helpers (optional)
------------------------------------------------------------- */
-window.clearCharacters = window.clearCharacters || function() {
-  console.warn("clearCharacters(): no engine or fallback scene available.");
-};
-window.setCharacterPosition = window.setCharacterPosition || function() {};
-window.focusCameraOnPlaza = window.focusCameraOnPlaza || function() {};
+// Auto-size canvas on first paint (iPad rotate)
+document.addEventListener("visibilitychange", ()=> {
+  if (document.visibilityState==="visible" && FB.renderer) {
+    const wrap = document.getElementById("plaza-canvas-wrap");
+    FB.renderer.setSize(wrap.clientWidth, Math.max(380, Math.round(wrap.clientWidth*0.56)), false);
+  }
+});
