@@ -1,0 +1,150 @@
+/* === Plaza UI (styled, glassy, game-like) === */
+
+:root {
+  --glass-bg: rgba(20, 22, 30, 0.55);
+  --glass-brd: rgba(255, 255, 255, 0.18);
+  --ink: #EAEAF2;
+  --ink-dim: #B9BED0;
+  --accent: #9a7bff;    /* amethyst */
+  --accent-2: #5ee1ff;  /* cyan glint */
+  --danger: #ff6b6b;
+}
+
+.plaza-body {
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(154,123,255,0.25), transparent 60%),
+    radial-gradient(1200px 800px at 10% 110%, rgba(94,225,255,0.18), transparent 60%),
+    #0f1220;
+  color: var(--ink);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+.glass {
+  backdrop-filter: blur(12px) saturate(120%);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-brd);
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+.town-header {
+  margin: 24px auto 10px;
+  max-width: 980px;
+  padding: 18px 22px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "brand title"
+    "brand subtitle";
+  gap: 6px 12px;
+}
+
+.town-header .brand {
+  grid-area: brand;
+  align-self: center;
+  text-decoration: none;
+  color: var(--ink-dim);
+  padding: 8px 12px;
+  border-radius: 10px;
+  transition: color .2s ease, background .2s ease;
+}
+.town-header .brand:hover { color: var(--ink); background: rgba(255,255,255,0.05); }
+
+.town-header h1 {
+  grid-area: title;
+  margin: 0;
+  font-size: clamp(28px, 4vw, 40px);
+  letter-spacing: 0.5px;
+}
+.town-header .subtitle {
+  grid-area: subtitle;
+  margin: 0;
+  color: var(--ink-dim);
+}
+
+.plaza-main {
+  max-width: 980px;
+  margin: 0 auto 80px;
+  padding: 10px 16px 40px;
+  display: grid;
+  gap: 16px;
+}
+
+.plaza-card {
+  padding: 20px 22px;
+}
+
+.plaza-card h2 {
+  margin: 0 0 6px 0;
+  font-size: clamp(20px, 2.8vw, 26px);
+}
+
+.plaza-card p { color: var(--ink-dim); margin-top: 4px; }
+
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.btn {
+  appearance: none;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform .05s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease;
+  user-select: none;
+}
+
+.btn:active { transform: translateY(1px); }
+
+.btn-xl {
+  font-size: 18px;
+  padding: 16px 22px;
+}
+
+.btn-primary {
+  background: linear-gradient(180deg, var(--accent) 0%, #6f55ff 100%);
+  color: white;
+  box-shadow: 0 8px 18px rgba(154,123,255,.35), 0 0 0 1px rgba(255,255,255,.06) inset;
+}
+.btn-primary:hover {
+  box-shadow: 0 10px 24px rgba(154,123,255,.45), 0 0 0 1px rgba(255,255,255,.09) inset;
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--ink);
+  border-color: rgba(255,255,255,0.22);
+}
+.btn-outline:hover {
+  background: rgba(255,255,255,0.06);
+}
+
+.btn-danger {
+  background: linear-gradient(180deg, var(--danger) 0%, #ff4d4d 100%);
+  color: white;
+}
+
+.helper {
+  display: block;
+  margin-top: 10px;
+  color: var(--ink-dim);
+}
+
+.plaza-help {
+  padding: 14px 18px;
+}
+.plaza-help summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+.plaza-help ul {
+  margin: 8px 0 0 18px;
+}
