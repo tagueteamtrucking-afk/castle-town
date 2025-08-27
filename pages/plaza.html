@@ -4,10 +4,13 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Plaza — Fantasy Castle Town</title>
-  <link rel="stylesheet" href="../assets/css/town.css">
-  <!-- If your site already loads a global JS bundle (e.g., main.js) in index.html
-       and you navigate to this page SPA-style, you might not need the script tag below.
-       If this page loads by itself, include main.js: -->
+  <link rel="stylesheet" href="../assets/css/style.css">
+
+  <!-- Three.js + VRM for fallback loader (only used if your engine doesn't provide loadCharacter) -->
+  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.160.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://unpkg.com/@pixiv/three-vrm@2.0.6/lib/three-vrm.min.js"></script>
+
   <script defer src="../assets/js/main.js"></script>
 </head>
 <body class="plaza-body">
@@ -37,13 +40,22 @@
       </small>
     </section>
 
+    <!-- Fallback canvas (used only if loadCharacter fallback initializes) -->
+    <section class="plaza-card glass">
+      <h2>Plaza Viewer</h2>
+      <p>If your site already shows models elsewhere, this will simply remain blank.</p>
+      <div id="plaza-canvas-wrap">
+        <canvas id="plaza-canvas"></canvas>
+      </div>
+    </section>
+
     <section class="plaza-help glass">
       <details>
         <summary>Having trouble?</summary>
         <ul>
           <li>Open DevTools → Console to see any load errors.</li>
-          <li>Filenames must exactly match <code>*.vrm</code> listed in <code>assets/models/</code>.</li>
-          <li>If avatars overlap, the grid auto-arranger will space them out whenever the engine exposes <code>setCharacterPosition</code>.</li>
+          <li>Filenames must exactly match <code>*.vrm</code> in <code>assets/models/</code>.</li>
+          <li>If avatars overlap, the grid auto-arranger will space them when possible.</li>
         </ul>
       </details>
     </section>
