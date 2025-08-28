@@ -56,3 +56,6 @@ html, body {
   /* Transparent so your existing page background shows through */
   background: transparent;
 }
+/* 3D canvas fit (keeps your existing theme intact) */
+html, body { height: 100%; }
+#scene { display: block; width: 100vw; height: 100vh; background: transparent; }
