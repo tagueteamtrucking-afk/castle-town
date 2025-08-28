@@ -1,91 +1,59 @@
+<!-- CC0 -->
 <!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<title>Plaza — Fantasy Castle Town (Map)</title>
+<title>Plaza — Fantasy Castle Town</title>
 <link rel="stylesheet" href="../asset/css/style.css"/>
 <style>
-  :root{
-    --ink:#0b0f16; --paper:#0e1220; --edge:#0b0f16; --glow:#a5d6ff;
-    --accent:#7ae6ff; --accent2:#ffd77a; --accent3:#ff9bc0; --grass:#0f1a14;
-  }
+  :root{--paper:#0b0f16;--ink:#eaf1ff}
   html,body{height:100%}
   body{
     margin:0;background:
       radial-gradient(1200px 800px at 50% -15%,rgba(255,255,255,.08),transparent 60%),
       radial-gradient(900px 640px at 120% 110%,rgba(255,255,255,.06),transparent 60%),
       linear-gradient(180deg,#0a0e1a 0%, #0b1220 50%, #0a0e1a 100%);
-    color:#e8ecff; overflow:hidden; touch-action:manipulation;
-    font:14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    color:#eaf1ff; overflow:hidden; touch-action:manipulation;
+    font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
   }
-  /* Soft vignette & stars */
-  .layer.stars{position:fixed;inset:0;pointer-events:none;opacity:.5}
   .topbar{
     position:fixed;left:0;right:0;top:0;display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center;
     padding:.5rem .75rem;background:linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,0));z-index:10
   }
   .topbar a{
-    font:600 13px system-ui,Segoe UI,Roboto,Arial,sans-serif;padding:.35rem .6rem;border-radius:.45rem;
+    font:600 13px system-ui;padding:.35rem .6rem;border-radius:.45rem;
     text-decoration:none;background:rgba(255,255,255,.08);color:#e6e9ff;border:1px solid rgba(255,255,255,.15)
   }
-
-  /* Map container */
   #mapwrap{position:fixed; inset:0; display:grid; place-items:center; z-index:1}
-  svg{width:min(1600px, 100vw); height:min(1000px, 100vh); max-width:100vw; max-height:100vh; display:block}
-
-  /* “Ink” style */
-  .outline{stroke:rgba(255,255,255,.18); stroke-width:2; paint-order:stroke fill; filter:drop-shadow(0 0 6px rgba(165,214,255,.15))}
-  .label{font:700 14px ui-monospace,Menlo,Consolas,monospace; letter-spacing:.02em; fill:#eaf1ff; text-shadow:0 1px 0 #000}
-  .chip{font:600 12px system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; fill:#eaf1ff}
-  .hint{fill:#a5d6ff}
-
-  /* Clickable building hit areas */
+  svg{width:min(1600px,100vw);height:min(1000px,100vh);display:block}
+  .tile{fill:rgba(255,255,255,.05); stroke:rgba(255,255,255,.2); stroke-width:1.6}
+  .outline{stroke:rgba(255,255,255,.18);stroke-width:2;paint-order:stroke fill}
+  .label{font:700 14px ui-monospace,Menlo,Consolas,monospace;fill:#eaf1ff}
   a.building{cursor:pointer}
-  a.building:focus-visible .halo,
-  a.building:hover .halo{opacity:.8}
-
-  .halo{opacity:.0; transition:opacity .15s ease;
-        filter:drop-shadow(0 0 10px rgba(165,214,255,.35)) drop-shadow(0 0 18px rgba(165,214,255,.25))}
-  .tile{fill:rgba(255,255,255,.04); stroke:rgba(255,255,255,.15); stroke-width:1.5}
-
-  /* Minimap controls */
-  #ui{position:fixed; right:.75rem; bottom:.75rem; z-index:11; display:flex; gap:.4rem; flex-wrap:wrap}
-  #ui button{
-    background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.2); color:#eaf1ff;
-    border-radius:.5rem; padding:.45rem .6rem; font:600 13px system-ui; backdrop-filter:blur(6px)
-  }
-  #ui button:active{transform:translateY(1px)}
-  #hud{position:fixed;left:.75rem;bottom:.75rem;z-index:11;
-       background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.18);border-radius:.5rem;padding:.5rem .65rem;
-       font:12px ui-monospace,Menlo,Consolas,monospace;color:#cde1ff;max-width:60vw}
-  #hud b{color:#a5d6ff}
+  a.building .halo{opacity:0;transition:opacity .15s}
+  a.building:hover .halo, a.building:focus-visible .halo{opacity:.85}
+  #ui{position:fixed;right:.75rem;bottom:.75rem;z-index:11;display:flex;gap:.4rem}
+  #ui button{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#eaf1ff;border-radius:.5rem;padding:.45rem .6rem;font:600 13px system-ui}
+  #hud{position:fixed;left:.75rem;bottom:.75rem;z-index:11;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.18);border-radius:.5rem;padding:.5rem .65rem;font:12px ui-monospace,Menlo,Consolas,monospace;color:#cde1ff;max-width:60vw}
+  .stars{position:fixed;inset:0;pointer-events:none;opacity:.5}
 </style>
 </head>
 <body>
-  <div class="topbar">
-    <a href="../index.html">Home</a>
-  </div>
-
-  <!-- Subtle starfield canvas (cheap to draw) -->
-  <canvas class="layer stars" id="stars"></canvas>
+  <div class="topbar"><a href="../index.html">Home</a></div>
+  <canvas class="stars" id="stars"></canvas>
 
   <div id="mapwrap">
-    <!-- SVG map (all buildings are vector; no images) -->
     <svg viewBox="0 0 1600 1000" role="img" aria-label="Fantasy Castle Town map">
-      <!-- Terrain -->
       <defs>
         <radialGradient id="g-hollow" cx="50%" cy="40%">
-          <stop offset="0" stop-color="#14201c"/>
-          <stop offset="1" stop-color="#0b1116"/>
+          <stop offset="0" stop-color="#14201c"/><stop offset="1" stop-color="#0b1116"/>
         </radialGradient>
         <linearGradient id="g-path" x1="0" x2="1">
-          <stop offset="0" stop-color="#2b2a1f"/>
-          <stop offset="1" stop-color="#3a3828"/>
+          <stop offset="0" stop-color="#2b2a1f"/><stop offset="1" stop-color="#3a3828"/>
         </linearGradient>
         <linearGradient id="g-water" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0" stop-color="#0e1d33"/>
-          <stop offset="1" stop-color="#0a1420"/>
+          <stop offset="0" stop-color="#0e1d33"/><stop offset="1" stop-color="#0a1420"/>
         </linearGradient>
       </defs>
 
@@ -94,7 +62,7 @@
       <ellipse cx="800" cy="520" rx="640" ry="360" fill="url(#g-hollow)"/>
 
       <!-- Plaza ring -->
-      <circle cx="800" cy="520" r="240" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="3" />
+      <circle cx="800" cy="520" r="240" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="3"/>
       <circle cx="800" cy="520" r="245" fill="none" stroke="rgba(165,214,255,.20)" stroke-width="1" stroke-dasharray="6 8"/>
 
       <!-- Paths -->
@@ -105,14 +73,12 @@
       <path d="M800,520 L1040,680" stroke="url(#g-path)" stroke-width="16" opacity=".5"/>
 
       <!-- ===== Buildings ===== -->
-      <!-- Each building = <a class="building" xlink:href="..."> with a fancy tile, icon, and label -->
 
-      <!-- Palace (White Star & ReyCzar) -->
+      <!-- Palace — White Star & ReyCzar -->
       <a class="building" xlink:href="../buildings/palace.html">
         <g transform="translate(800,220)">
-          <ellipse class="tile" rx="120" ry="55" />
-          <g class="halo"><circle r="75" fill="none" stroke="#a5d6ff" stroke-width="2" stroke-dasharray="8 10"/></g>
-          <!-- little castle -->
+          <ellipse class="tile" rx="120" ry="55"/>
+          <g class="halo"><circle r="74" fill="none" stroke="#a5d6ff" stroke-width="2" stroke-dasharray="8 10"/></g>
           <g transform="translate(-36,-28) scale(1.2)">
             <rect x="0" y="24" width="72" height="38" fill="#2b2e48" class="outline"/>
             <rect x="-8" y="10" width="24" height="28" fill="#2b2e48" class="outline"/>
@@ -124,7 +90,7 @@
         </g>
       </a>
 
-      <!-- Abbey — Grand Vault (NW) -->
+      <!-- Abby — Grand Vault -->
       <a class="building" xlink:href="../buildings/abbey.html">
         <g transform="translate(540,360)">
           <ellipse class="tile" rx="110" ry="50"/>
@@ -137,7 +103,7 @@
         </g>
       </a>
 
-      <!-- Billie — Mansion w/ stock wall (NE) -->
+      <!-- Billie — Mansion -->
       <a class="building" xlink:href="../buildings/billie.html">
         <g transform="translate(1060,360)">
           <ellipse class="tile" rx="110" ry="50"/>
@@ -151,7 +117,7 @@
         </g>
       </a>
 
-      <!-- Odessa — Museum Mansion (W) -->
+      <!-- Odessa -->
       <a class="building" xlink:href="../buildings/odessa.html">
         <g transform="translate(420,520)">
           <ellipse class="tile" rx="110" ry="48"/>
@@ -164,7 +130,7 @@
         </g>
       </a>
 
-      <!-- Sorcha — Influencer Mansion (E) -->
+      <!-- Sorcha -->
       <a class="building" xlink:href="../buildings/sorcha.html">
         <g transform="translate(1180,520)">
           <ellipse class="tile" rx="110" ry="48"/>
@@ -177,7 +143,7 @@
         </g>
       </a>
 
-      <!-- Nina — Cyber/Steampunk Lab (SW) -->
+      <!-- Nina -->
       <a class="building" xlink:href="../buildings/nina.html">
         <g transform="translate(540,680)">
           <ellipse class="tile" rx="110" ry="48"/>
@@ -191,7 +157,7 @@
         </g>
       </a>
 
-      <!-- Charlotte — Relay Tower (SE) -->
+      <!-- Charlotte -->
       <a class="building" xlink:href="../buildings/charlotte.html">
         <g transform="translate(1060,680)">
           <ellipse class="tile" rx="110" ry="48"/>
@@ -206,7 +172,7 @@
         </g>
       </a>
 
-      <!-- Themis — Compliance -->
+      <!-- Themis -->
       <a class="building" xlink:href="../buildings/themis.html">
         <g transform="translate(800,740)">
           <ellipse class="tile" rx="110" ry="50"/>
@@ -219,7 +185,7 @@
         </g>
       </a>
 
-      <!-- Clarice — City Hall (Judge) -->
+      <!-- Clarice -->
       <a class="building" xlink:href="../buildings/clarice.html">
         <g transform="translate(960,780)">
           <ellipse class="tile" rx="110" ry="46"/>
@@ -232,7 +198,7 @@
         </g>
       </a>
 
-      <!-- Carol — Restaurant (by the Dojo) -->
+      <!-- Carol -->
       <a class="building" xlink:href="../buildings/carol.html">
         <g transform="translate(640,780)">
           <ellipse class="tile" rx="108" ry="46"/>
@@ -245,7 +211,7 @@
         </g>
       </a>
 
-      <!-- Jem — Dojo -->
+      <!-- Jem -->
       <a class="building" xlink:href="../buildings/jem.html">
         <g transform="translate(540,840)">
           <ellipse class="tile" rx="104" ry="42"/>
@@ -258,7 +224,7 @@
         </g>
       </a>
 
-      <!-- Stella — Observatory / Apothecary -->
+      <!-- Stella -->
       <a class="building" xlink:href="../buildings/stella.html">
         <g transform="translate(640,260)">
           <ellipse class="tile" rx="100" ry="42"/>
@@ -271,7 +237,7 @@
         </g>
       </a>
 
-      <!-- Tracy — Cathedral Studio -->
+      <!-- Tracy -->
       <a class="building" xlink:href="../buildings/tracy.html">
         <g transform="translate(960,260)">
           <ellipse class="tile" rx="100" ry="42"/>
@@ -284,7 +250,7 @@
         </g>
       </a>
 
-      <!-- Alexandria — Library -->
+      <!-- Alexandria -->
       <a class="building" xlink:href="../buildings/alexandria.html">
         <g transform="translate(960,840)">
           <ellipse class="tile" rx="104" ry="42"/>
@@ -300,44 +266,25 @@
     </svg>
   </div>
 
-  <div id="ui">
-    <button id="zoomIn" aria-label="Zoom in">＋</button>
-    <button id="zoomOut" aria-label="Zoom out">－</button>
-    <button id="center" aria-label="Center map">Center</button>
-  </div>
-
-  <div id="hud">Tip: tap a building to enter. This map uses <b>SVG</b> so it’s crisp and fast on iPad.</div>
+  <div id="ui"><button id="zoomIn">＋</button><button id="zoomOut">－</button><button id="center">Center</button></div>
+  <div id="hud">Tap a building to enter. The map is crisp SVG and optimized for iPad.</div>
 
 <script>
-  /* Soft starfield that won’t drain battery */
+  // tiny starfield (battery-friendly)
   (function stars(){
     const c=document.getElementById('stars'),x=c.getContext('2d');
     const DPR=Math.min(devicePixelRatio||1,2); c.width=innerWidth*DPR; c.height=innerHeight*DPR; c.style.width='100%'; c.style.height='100%';
-    x.scale(DPR,DPR);
-    x.clearRect(0,0,innerWidth,innerHeight);
-    const n=Math.min(150, Math.floor((innerWidth*innerHeight)/14000));
-    for(let i=0;i<n;i++){
-      const r=Math.random()*1.6, a=.3+Math.random()*.7;
-      x.fillStyle=`rgba(200,220,255,${a})`;
-      x.beginPath(); x.arc(Math.random()*innerWidth,Math.random()*innerHeight,r,0,Math.PI*2); x.fill();
-    }
+    x.scale(DPR,DPR); x.clearRect(0,0,innerWidth,innerHeight);
+    const n=Math.min(150,Math.floor((innerWidth*innerHeight)/14000));
+    for(let i=0;i<n;i++){const r=Math.random()*1.6,a=.3+Math.random()*.7;x.fillStyle=`rgba(200,220,255,${a})`;x.beginPath();x.arc(Math.random()*innerWidth,Math.random()*innerHeight,r,0,Math.PI*2);x.fill();}
     addEventListener('resize',stars,{once:true});
   })();
-
-  /* Simple zoom/pan for the whole SVG (works with buttons; pinch-zoom just uses Safari’s native) */
+  // simple zoom/pan
   (function zoomer(){
-    const svg=document.querySelector('svg');
-    let scale=1, tx=0, ty=0;
-    const apply=()=>{svg.style.transform=`translate(${tx}px,${ty}px) scale(${scale})`; svg.style.transformOrigin='50% 50%';}
-    document.getElementById('zoomIn').onclick=()=>{scale=Math.min(2.0, +(scale+0.1).toFixed(2)); apply();}
-    document.getElementById('zoomOut').onclick=()=>{scale=Math.max(0.7, +(scale-0.1).toFixed(2)); apply();}
-    document.getElementById('center').onclick=()=>{scale=1; tx=ty=0; apply();}
-    // drag to pan
-    let p=null;
-    svg.addEventListener('pointerdown',e=>{p={x:e.clientX,y:e.clientY,tx,ty}; svg.setPointerCapture(e.pointerId);});
-    svg.addEventListener('pointermove',e=>{ if(!p) return; tx=p.tx+(e.clientX-p.x); ty=p.ty+(e.clientY-p.y); apply(); });
-    svg.addEventListener('pointerup',()=>p=null);
-    apply();
+    const svg=document.querySelector('svg');let s=1,tx=0,ty=0;const apply=()=>{svg.style.transform=`translate(${tx}px,${ty}px) scale(${s})`;svg.style.transformOrigin='50% 50%';}
+    zoomIn.onclick=()=>{s=Math.min(2,+(s+.1).toFixed(2));apply()}; zoomOut.onclick=()=>{s=Math.max(.7,+(s-.1).toFixed(2));apply()}; center.onclick=()=>{s=1;tx=ty=0;apply()};
+    let p=null;svg.addEventListener('pointerdown',e=>{p={x:e.clientX,y:e.clientY,tx,ty};svg.setPointerCapture(e.pointerId)});
+    svg.addEventListener('pointermove',e=>{if(!p)return;tx=p.tx+(e.clientX-p.x);ty=p.ty+(e.clientY-p.y);apply()}); svg.addEventListener('pointerup',()=>p=null); apply();
   })();
 </script>
 </body>
