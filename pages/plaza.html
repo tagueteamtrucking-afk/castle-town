@@ -1,64 +1,124 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Plaza — Fantasy Castle Town</title>
-  <link rel="stylesheet" href="../assets/css/style.css">
-
-  <!-- Three.js + VRM for fallback loader (only used if your engine doesn't provide loadCharacter) -->
-  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
-  <script src="https://unpkg.com/three@0.160.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="https://unpkg.com/@pixiv/three-vrm@2.0.6/lib/three-vrm.min.js"></script>
-
-  <script defer src="../assets/js/main.js"></script>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Plaza — Fantasy Castle Town</title>
+<link rel="stylesheet" href="../asset/css/style.css" />
+<style>
+  #hud{position:fixed;right:.75rem;bottom:.75rem;max-width:60vw;max-height:40vh;overflow:auto;
+       font:12px/1.35 ui-monospace,Menlo,monospace;background:rgba(0,0,0,.65);color:#eaeaff;
+       padding:.6rem .7rem;border:1px solid rgba(255,255,255,.18);border-radius:.5rem;
+       backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:9999}
+  #hud b{color:#a5d6ff}.ok{color:#7dff9b}.err{color:#ff8aa5}
+  #scene{display:block;width:100vw;height:100vh;background:transparent}
+  html,body{height:100%}
+  .topbar{position:fixed;left:0;right:0;top:0;display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center;
+          padding:.5rem;background:linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,0));z-index:9998}
+  .topbar a{font:600 13px system-ui,Segoe UI,Roboto,Arial,sans-serif;padding:.35rem .6rem;border-radius:.45rem;
+            text-decoration:none;background:rgba(255,255,255,.08);color:#e6e9ff;border:1px solid rgba(255,255,255,.15)}
+  .topbar a:hover{background:rgba(255,255,255,.15)}
+</style>
 </head>
-<body class="plaza-body">
-  <header class="town-header glass">
-    <a class="brand" href="../index.html">⮐ Back to Town</a>
-    <h1>Plaza</h1>
-    <p class="subtitle">Summon everyone to the square</p>
-  </header>
+<body>
+  <div class="topbar">
+    <a href="../index.html">⤴ Home</a>
+    <a href="../buildings/stella.html">Stella — Observatory & Apothecary</a>
+    <a href="../buildings/tracy.html">Tracy — Cathedral Studio</a>
+    <a href="../buildings/alexandria.html">Alexandria — Dojo / Portal Library</a>
+    <a href="../buildings/jem.html">Jem — Restaurant</a>
+    <a href="../buildings/carol.html">Carol — Blue Lab</a>
+    <a href="../buildings/nina.html">Nina — Relay Tower</a>
+    <a href="../buildings/charlotte.html">Charlotte — Grand Vault Library</a>
+    <a href="../buildings/abbey.html">Abbey — Art Sales Mansion</a>
+    <a href="../buildings/billie.html">Billie — Museum Mansion</a>
+    <a href="../buildings/odessa.html">Odessa — Social Mansion</a>
+    <a href="../buildings/sorcha.html">Sorcha — Chamber of Compliance</a>
+    <a href="../buildings/themis.html">Themis — City Records</a>
+    <a href="../buildings/clarice.html">Clarice — Judge’s Chamber</a>
+    <a href="../buildings/palace.html">Palace — White Star & ReyCzar</a>
+  </div>
 
-  <main class="plaza-main">
-    <section class="plaza-card glass">
-      <h2>Load All Characters</h2>
-      <p>Spawn all assistants together for training, ceremonies, or photo ops.</p>
+  <canvas id="scene"></canvas>
+  <div id="hud">Booting…</div>
 
-      <div class="btn-row">
-        <button class="btn btn-primary btn-xl" onclick="loadAllCharacters()">
-          ✨ Summon All 15
-        </button>
+  <script type="module">
+    const hud = document.getElementById('hud');
+    const log = (m,c="")=>{const p=document.createElement('div'); if(c)p.className=c; p.innerHTML=m; hud.appendChild(p); hud.scrollTop=hud.scrollHeight;};
 
-        <button class="btn btn-outline" onclick="try{clearCharacters&&clearCharacters()}catch(e){}">
-          ⛔ Clear Plaza
-        </button>
-      </div>
+    // esm.sh rewrites bare imports so @pixiv/three-vrm works in browser
+    const VER="0.152.2";
+    const THREE_URL=`https://esm.sh/three@${VER}`;
+    const ORBIT_URL=`https://esm.sh/three@${VER}/examples/jsm/controls/OrbitControls.js`;
+    const GLTF_URL =`https://esm.sh/three@${VER}/examples/jsm/loaders/GLTFLoader.js`;
+    const VRM_URL  =`https://esm.sh/@pixiv/three-vrm@2.0.7?deps=three@${VER}`;
 
-      <small class="helper">
-        Tip: VRM files live in <code>assets/models/</code> — lowercase, no spaces.
-      </small>
-    </section>
+    let THREE, OrbitControls, GLTFLoader, VRM, VRMUtils;
+    try{
+      THREE = await import(THREE_URL);
+      ({ OrbitControls } = await import(ORBIT_URL));
+      ({ GLTFLoader } = await import(GLTF_URL));
+      ({ VRM, VRMUtils } = await import(VRM_URL));
+      log(`✅ <b>Imports OK</b> — three@${VER} / three-vrm@2.0.7`, "ok");
+    }catch(e){ log(`❌ <b>Import failed</b>: ${e?.message||e}`, "err"); throw e; }
 
-    <!-- Fallback canvas (used only if loadCharacter fallback initializes) -->
-    <section class="plaza-card glass">
-      <h2>Plaza Viewer</h2>
-      <p>If your site already shows models elsewhere, this will simply remain blank.</p>
-      <div id="plaza-canvas-wrap">
-        <canvas id="plaza-canvas"></canvas>
-      </div>
-    </section>
+    // Scene
+    const canvas = document.getElementById('scene');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+    renderer.setSize(innerWidth, innerHeight);
 
-    <section class="plaza-help glass">
-      <details>
-        <summary>Having trouble?</summary>
-        <ul>
-          <li>Open DevTools → Console to see any load errors.</li>
-          <li>Filenames must exactly match <code>*.vrm</code> in <code>assets/models/</code>.</li>
-          <li>If avatars overlap, the grid auto-arranger will space them when possible.</li>
-        </ul>
-      </details>
-    </section>
-  </main>
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(40, innerWidth/innerHeight, .1, 1000);
+    camera.position.set(0, 1.6, 7);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 1.4, 0); controls.enableDamping = true;
+
+    scene.add(new THREE.HemisphereLight(0xffffff,0x444466,0.7));
+    const dir = new THREE.DirectionalLight(0xffffff,0.9); dir.position.set(3,6,2); scene.add(dir);
+
+    const ground = new THREE.Mesh(new THREE.CircleGeometry(7,72),
+      new THREE.MeshStandardMaterial({ color:0x1a1a1f, metalness:.05, roughness:.95 }));
+    ground.rotation.x = -Math.PI/2; ground.receiveShadow = true; scene.add(ground);
+
+    // VRMs
+    const names = ["stella","tracy","alexandria","jem","carol","nina","charlotte","abbey","billie","odessa","sorcha","themis","clarice","whitestar","reyczar"];
+    const loader = new GLTFLoader();
+    const vrms = [];
+
+    const place = ()=>{ const r=3.8,y=0;
+      vrms.forEach((v,i)=>{ const t=(i/Math.max(1,vrms.length))*Math.PI*2;
+        v.scene.position.set(Math.cos(t)*r, y, Math.sin(t)*r); v.scene.lookAt(0,1.4,0); });
+    };
+
+    const loadVRM = (url)=>new Promise((res,rej)=>{
+      loader.load(url,(gltf)=>{ VRM.from(gltf).then(vrm=>{
+        VRMUtils.removeUnnecessaryJoints(vrm.scene);
+        vrm.scene.traverse(o=>{ if(o.isMesh){o.frustumCulled=false; o.castShadow=true; o.receiveShadow=true;}});
+        scene.add(vrm.scene); vrms.push(vrm); place(); res(vrm);
+      }).catch(rej); }, undefined, (err)=>rej(err)); });
+
+    log(`<b>Models:</b> /castle-town/asset/models/`);
+    let any=false;
+    for(const n of names){
+      const url = `../asset/models/${n}.vrm`;
+      try{
+        const head = await fetch(url,{method:"HEAD",cache:"no-store"});
+        if(!head.ok){ log(`↳ (missing) <code>${url}</code> — HTTP ${head.status}`); continue; }
+        await loadVRM(url);
+        log(`✅ <span class="ok">Loaded</span> <code>${n}.vrm</code>`, "ok");
+        any=true;
+      }catch(e){ log(`❌ <span class="err">Failed</span> <code>${url}</code> — ${e?.message||e}`, "err"); }
+    }
+    if(!any){
+      const sample="https://pixiv.github.io/three-vrm/examples/models/VRM/AliciaSolid.vrm";
+      log(`<b>No local VRMs found.</b> Loading sample: <code>${sample}</code>`);
+      try{ await loadVRM(sample); log(`✅ <span class="ok">Sample VRM loaded</span>`,"ok"); }catch(e){ log(`❌ <span class="err">Sample failed</span> — ${e?.message||e}`,"err"); }
+    }
+
+    addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); });
+    (function animate(){ controls.update(); renderer.render(scene,camera); requestAnimationFrame(animate); })();
+  </script>
 </body>
 </html>
