@@ -5,20 +5,44 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Fantasy Town — Plaza</title>
 
-  <!-- Keep your existing styles exactly as-is -->
+  <!-- keep your existing stylesheet path -->
   <link rel="stylesheet" href="asset/css/style.css" />
+  <style>
+    /* tiny, non-invasive status hud so you can debug on iPad */
+    #hud {
+      position: fixed; right: .75rem; bottom: .75rem;
+      max-width: 60vw; max-height: 40vh; overflow: auto;
+      font: 12px/1.3 ui-monospace, SFMono-Regular, Menlo, monospace;
+      background: rgba(0,0,0,.65); color: #eaeaff; padding: .6rem .7rem;
+      border: 1px solid rgba(255,255,255,.18); border-radius: .5rem;
+      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+      z-index: 9999;
+    }
+    #hud b { color:#a5d6ff }
+    #hud .ok { color:#7dff9b }
+    #hud .err { color:#ff8aa5 }
+  </style>
 </head>
 <body>
-
-  <!-- Non-intrusive: one canvas for the 3D scene -->
   <canvas id="scene"></canvas>
+  <div id="hud">Booting…</div>
 
-  <!-- ES modules, version-pinned for stability -->
   <script type="module">
+    // ——— versions pinned for stability ———
     import * as THREE from "https://unpkg.com/three@0.152.2/build/three.module.js";
     import { OrbitControls } from "https://unpkg.com/three@0.152.2/examples/jsm/controls/OrbitControls.js";
     import { GLTFLoader } from "https://unpkg.com/three@0.152.2/examples/jsm/loaders/GLTFLoader.js";
     import { VRM, VRMUtils } from "https://unpkg.com/@pixiv/three-vrm@2.0.7/lib/three-vrm.module.js";
+
+    const hud = document.getElementById('hud');
+    const log = (msg, cls="") => {
+      const p = document.createElement('div');
+      if (cls) p.className = cls;
+      p.innerHTML = msg;
+      hud.appendChild(p);
+      hud.scrollTop = hud.scrollHeight;
+      console.log(msg.replace(/<[^>]+>/g,""));
+    };
 
     // Renderer
     const canvas = document.getElementById('scene');
@@ -35,26 +59,22 @@
     controls.target.set(0, 1.4, 0);
     controls.enableDamping = true;
 
-    // Lights (subtle so your theme remains dominant)
-    const hemi = new THREE.HemisphereLight(0xffffff, 0x444466, 0.7);
-    hemi.position.set(0, 10, 0);
-    scene.add(hemi);
-
+    // Lights
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x444466, 0.7));
     const dir = new THREE.DirectionalLight(0xffffff, 0.9);
     dir.position.set(3, 5, 2);
     scene.add(dir);
 
-    // Low-key ground to anchor shadows (nearly invisible)
+    // Ground (subtle)
     const ground = new THREE.Mesh(
       new THREE.CircleGeometry(6, 64),
       new THREE.MeshStandardMaterial({ color: 0x1a1a1f, metalness: 0.05, roughness: 0.95 })
     );
     ground.rotation.x = -Math.PI / 2;
-    ground.position.y = 0;
     ground.receiveShadow = true;
     scene.add(ground);
 
-    // VRM loader
+    // Loader
     const loader = new GLTFLoader();
     const vrmNames = [
       "stella","tracy","alexandria","jem","carol",
@@ -63,74 +83,69 @@
     ];
 
     const vrms = [];
-
     function placeVRMsInCircle() {
-      const r = 3.3;
-      const y = 0;
+      const r = 3.3, y = 0;
       vrms.forEach((vrm, i) => {
-        const t = (i / vrms.length) * Math.PI * 2;
-        const x = Math.cos(t) * r;
-        const z = Math.sin(t) * r;
-        vrm.scene.position.set(x, y, z);
+        const t = (i / Math.max(1, vrms.length)) * Math.PI * 2;
+        vrm.scene.position.set(Math.cos(t)*r, y, Math.sin(t)*r);
         vrm.scene.lookAt(0, 1.4, 0);
       });
     }
 
-    function loadVRM(url) {
+    async function loadVRM(url) {
       return new Promise((resolve, reject) => {
-        loader.load(
-          url,
-          (gltf) => {
-            VRM.from(gltf).then((vrm) => {
-              VRMUtils.removeUnnecessaryJoints(vrm.scene);
-              vrm.scene.traverse((o) => {
-                if (o.isMesh) {
-                  o.frustumCulled = false;
-                  o.castShadow = true;
-                  o.receiveShadow = true;
-                }
-              });
-              scene.add(vrm.scene);
-              vrms.push(vrm);
-              placeVRMsInCircle();
-              resolve(vrm);
-            }).catch(reject);
-          },
-          undefined,
-          (err) => reject(err)
-        );
+        loader.load(url, (gltf) => {
+          VRM.from(gltf).then((vrm) => {
+            VRMUtils.removeUnnecessaryJoints(vrm.scene);
+            vrm.scene.traverse(o => {
+              if (o.isMesh) { o.frustumCulled=false; o.castShadow=true; o.receiveShadow=true; }
+            });
+            scene.add(vrm.scene);
+            vrms.push(vrm);
+            placeVRMsInCircle();
+            resolve(vrm);
+          }).catch(reject);
+        }, undefined, (err) => reject(err));
       });
     }
 
+    // Start
+    log(`<b>CSS:</b> using <code>asset/css/style.css</code>`);
+    log(`<b>Models folder:</b> <code>asset/models/</code>`);
+    log(`<b>Three:</b> ${THREE.REVISION} | <b>VRM:</b> 2.x`);
+
     (async () => {
       for (const name of vrmNames) {
-        const url = `asset/models/${name}.vrm`; // matches your structure
+        const url = `asset/models/${name}.vrm`;
         try {
+          log(`Loading <code>${url}</code>…`);
           await loadVRM(url);
-          console.log(`Loaded: ${url}`);
+          log(`✅ <span class="ok">Loaded:</span> <code>${name}.vrm</code>`);
         } catch (e) {
-          console.error(`[error] VRM load failed: ${url}`, e);
+          log(`❌ <span class="err">Failed:</span> <code>${url}</code> — ${String(e && (e.message || e))}`);
+          // extra hint if this is a 404
+          try {
+            const head = await fetch(url, { method: "HEAD", cache: "no-store" });
+            if (!head.ok) log(`↳ <span class="err">HTTP ${head.status} ${head.statusText} (check name & path)</span>`);
+          } catch {}
         }
+      }
+      if (!vrms.length) {
+        log(`<span class="err">No VRMs loaded. Check: file names are lowercase/no spaces, folder is <code>/castle-town/asset/models/</code>, and that GitHub finished building Pages.</span>`);
       }
     })();
 
-    // Resize
-    window.addEventListener('resize', () => {
-      const w = window.innerWidth, h = window.innerHeight;
-      camera.aspect = w / h;
+    // Resize & render
+    addEventListener('resize', () => {
+      camera.aspect = innerWidth / innerHeight;
       camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
+      renderer.setSize(innerWidth, innerHeight);
     });
-
-    // Animate
-    const clock = new THREE.Clock();
-    function animate() {
-      clock.getDelta(); // reserved for future animation
+    (function animate(){
       controls.update();
       renderer.render(scene, camera);
       requestAnimationFrame(animate);
-    }
-    animate();
+    })();
   </script>
 </body>
 </html>
