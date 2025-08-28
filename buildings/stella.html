@@ -1,54 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Observatory & Apothecary — Stella</title>
-<link rel="stylesheet" href="../assets/css/style.css"/>
-</head>
-<body>
-<header class="topbar">
-  <a href="../index.html">« Town</a>
-  <h2>Stella — Meditation • Sound • Hypnosis • NLP • Yoga</h2>
-</header>
-
-<main class="wrap">
-  <div class="panel grid two">
-    <div>
-      <h3>Guided Session</h3>
-      <label>Style</label>
-      <select id="style" class="input">
-        <option value="breath">Breath Focus</option>
-        <option value="body">Body Scan</option>
-        <option value="nlp">NLP Anchoring</option>
-        <option value="gateway">Gateway (hemi-sync style)</option>
-        <option value="yoga">Yoga Flow (gentle)</option>
-        <option value="hypno">Hypnotherapy Relaxation</option>
-      </select>
-      <label>Duration (minutes)</label>
-      <input id="mins" class="input" type="number" min="3" max="45" value="10"/>
-      <label>Voice</label>
-      <select id="voice" class="input"></select>
-      <div class="buttons">
-        <button id="start" class="btn">▶ Start Session</button>
-        <button id="stop" class="btn">■ Stop</button>
-      </div>
-      <p class="small">Plays via your device’s text-to-speech. Good for you and your wife together.</p>
-    </div>
-    <div>
-      <h3>Sound Bath</h3>
-      <div id="soundList" class="audio-list"></div>
-      <button id="stopAudio" class="btn">■ Stop All Sounds</button>
-    </div>
-  </div>
-
-  <div class="panel">
-    <h3>Avatar (VRM)</h3>
-    <canvas id="vrmCanvas" height="360"></canvas>
-    <p class="small">Loads <code>assets/models/white_star.vrm</code> by default (use your best female voice avatar).</p>
-  </div>
-</main>
-
-<script type="module" src="../assets/js/stella.js"></script>
-</body>
-</html>
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Stella — Observatory / Apothecary</title>
+<link rel="stylesheet" href="../asset/css/style.css"/>
+<style>
+html,body{height:100%} #scene{width:100vw;height:100vh}
+body{background:radial-gradient(60% 40% at 50% 10%,rgba(200,220,255,.12),rgba(0,0,0,0)),linear-gradient(180deg,#0a0e14 0%,#0e1520 60%,#0a0e14 100%)}
+#hud{position:fixed;right:.75rem;bottom:.75rem;max-width:60vw;max-height:40vh;overflow:auto;font:12px/1.35 ui-monospace,Menlo,monospace;background:rgba(0,0,0,.65);color:#eaeaff;padding:.6rem .7rem;border:1px solid rgba(255,255,255,.18);border-radius:.5rem;backdrop-filter:blur(6px);z-index:9999}
+#hud b{color:#c8dcff}.ok{color:#7dff9b}.err{color:#ff8aa5}
+.topbar{position:fixed;left:0;right:0;top:0;display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center;padding:.5rem;background:linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,0));z-index:9998}
+.topbar a{font:600 13px system-ui,Segoe UI,Roboto,Arial,sans-serif;padding:.35rem .6rem;border-radius:.45rem;text-decoration:none;background:rgba(255,255,255,.08);color:#e6e9ff;border:1px solid rgba(255,255,255,.15)}
+</style></head><body>
+<div class="topbar"><a href="../pages/plaza.html">← Plaza</a> <span style="color:#c8dcff;font:600 13px system-ui;">Breath & sound therapy</span></div>
+<canvas id="scene"></canvas><div id="hud">Booting…</div>
+<script type="module">
+const hud=document.getElementById('hud');const log=(m,c="")=>{const p=document.createElement('div');if(c)p.className=c;p.innerHTML=m;hud.appendChild(p);hud.scrollTop=hud.scrollHeight;};
+const V="0.152.2",TH=`https://esm.sh/three@${V}`,OB=`https://esm.sh/three@${V}/examples/jsm/controls/OrbitControls.js`,GL=`https://esm.sh/three@${V}/examples/jsm/loaders/GLTFLoader.js`,VR=`https://esm.sh/@pixiv/three-vrm@2.0.7?deps=three@${V}`;
+let T,Orbit,Load,VRM;try{T=await import(TH);({OrbitControls:Orbit}=await import(OB));({GLTFLoader:Load}=await import(GL));({VRM}=await import(VR));log(`✅ Imports OK`,"ok");}catch(e){log(`❌ Import failed: ${e?.message||e}`,"err");throw e;}
+const canvas=document.getElementById('scene'),R=new T.WebGLRenderer({canvas,antialias:true,alpha:true});R.setPixelRatio(Math.min(devicePixelRatio,2));R.setSize(innerWidth,innerHeight);
+const S=new T.Scene(),C=new T.PerspectiveCamera(40,innerWidth/innerHeight,.1,1000);C.position.set(0.6,1.6,2.8);
+const ctl=new Orbit(C,R.domElement);ctl.target.set(0,1.45,0);ctl.enableDamping=true;
+S.add(new T.HemisphereLight(0xffffff,0x444466,.72));const d=new T.DirectionalLight(0xffffff,1.0);d.position.set(2.5,5,2);S.add(d);
+const G=new T.Mesh(new T.CircleGeometry(4.5,64),new T.MeshStandardMaterial({color:0x0f141b,metalness:.08,roughness:.92}));G.rotation.x=-Math.PI/2;S.add(G);
+const L=new Load(),url=`../asset/models/stella.vrm`;
+const load=u=>new Promise((res,rej)=>{L.load(u,(g)=>{VRM.from(g).then(v=>{v.scene.traverse(o=>{if(o.isMesh){o.frustumCulled=false;o.castShadow=true;o.receiveShadow=true;}});S.add(v.scene);res(v);}).catch(rej);},undefined,(e)=>rej(e));});
+try{const h=await fetch(url,{method:"HEAD",cache:"no-store"});if(!h.ok){log(`❌ stella.vrm missing`,"err");}else{await load(url);log(`✅ Stella ready`,"ok");}}catch(e){log(`❌ Load error: ${e?.message||e}`,"err");}
+addEventListener('resize',()=>{C.aspect=innerWidth/innerHeight;C.updateProjectionMatrix();R.setSize(innerWidth,innerHeight);});
+(function loop(){ctl.update();R.render(S,C);requestAnimationFrame(loop);})();
+</script></body></html>
