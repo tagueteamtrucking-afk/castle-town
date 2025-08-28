@@ -1,76 +1,344 @@
-<!doctype html><html lang="en"><head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Plaza — Fantasy Castle Town</title>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Plaza — Fantasy Castle Town (Map)</title>
 <link rel="stylesheet" href="../asset/css/style.css"/>
 <style>
-#hud{position:fixed;right:.75rem;bottom:.75rem;max-width:60vw;max-height:40vh;overflow:auto;
-     font:12px/1.35 ui-monospace,Menlo,monospace;background:rgba(0,0,0,.65);color:#eaeaff;
-     padding:.6rem .7rem;border:1px solid rgba(255,255,255,.18);border-radius:.5rem;
-     backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:9999}
-#hud b{color:#a5d6ff}.ok{color:#7dff9b}.err{color:#ff8aa5}
-#scene{display:block;width:100vw;height:100vh;background:transparent}
-.topbar{position:fixed;left:0;right:0;top:0;display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center;
-        padding:.5rem;background:linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,0));z-index:9998}
-.topbar a{font:600 13px system-ui,Segoe UI,Roboto,Arial,sans-serif;padding:.35rem .6rem;border-radius:.45rem;
-          text-decoration:none;background:rgba(255,255,255,.08);color:#e6e9ff;border:1px solid rgba(255,255,255,.15)}
-.topbar a:hover{background:rgba(255,255,255,.15)}
-html,body{height:100%}
-</style></head><body>
-<div class="topbar">
-  <a href="../buildings/palace.html">Palace — White Star & ReyCzar</a>
-  <a href="../buildings/abbey.html">Abbey — Grand Vault (Treasure)</a>
-  <a href="../buildings/billie.html">Billie — Mansion (Stock Wall)</a>
-  <a href="../buildings/odessa.html">Odessa — Museum Mansion</a>
-  <a href="../buildings/sorcha.html">Sorcha — Influencer Screening</a>
-  <a href="../buildings/nina.html">Nina — Cyber/Steampunk Lab</a>
-  <a href="../buildings/charlotte.html">Charlotte — Relay Tower</a>
-  <a href="../buildings/themis.html">Themis — Compliance (Records)</a>
-  <a href="../buildings/clarice.html">Clarice — City Hall (Judge)</a>
-  <a href="../buildings/carol.html">Carol — Restaurant (Dojo)</a>
-  <a href="../buildings/jem.html">Jem — Dojo</a>
-  <a href="../buildings/stella.html">Stella — Observatory/Apothecary</a>
-  <a href="../buildings/tracy.html">Tracy — Cathedral Studio</a>
-  <a href="../buildings/alexandria.html">Alexandria — Library</a>
-</div>
-<canvas id="scene"></canvas><div id="hud">Booting…</div>
-<script type="module">
-const hud=document.getElementById('hud');const log=(m,c="")=>{const p=document.createElement('div');if(c)p.className=c;p.innerHTML=m;hud.appendChild(p);hud.scrollTop=hud.scrollHeight;};
-const VER="0.152.2", THREE=`https://esm.sh/three@${VER}`, ORB=`https://esm.sh/three@${VER}/examples/jsm/controls/OrbitControls.js`,
-      GLTF=`https://esm.sh/three@${VER}/examples/jsm/loaders/GLTFLoader.js`, VRM=`https://esm.sh/@pixiv/three-vrm@2.0.7?deps=three@${VER}`;
-let T,OrbitControls,GLTFLoader,VRMMod;try{
-  T=await import(THREE);({OrbitControls}=await import(ORB));
-  ({GLTFLoader}=await import(GLTF));VRMMod=await import(VRM);
-  log(`✅ <b>Imports OK</b> — three@${VER} / three-vrm@2.0.7`,"ok");
-}catch(e){log(`❌ <b>Import failed</b>: ${e?.message||e}`,"err");throw e;}
-const canvas=document.getElementById('scene'),
-      r=new T.WebGLRenderer({canvas,antialias:true,alpha:true});
-r.setPixelRatio(Math.min(devicePixelRatio,2));r.setSize(innerWidth,innerHeight);
-const scene=new T.Scene(), cam=new T.PerspectiveCamera(40,innerWidth/innerHeight,.1,1000);
-cam.position.set(0,1.6,7);
-const ctl=new OrbitControls(cam,r.domElement);ctl.target.set(0,1.4,0);ctl.enableDamping=true;
-scene.add(new T.HemisphereLight(0xffffff,0x444466,0.7));
-const d=new T.DirectionalLight(0xffffff,0.9);d.position.set(3,6,2);scene.add(d);
-const ground=new T.Mesh(new T.CircleGeometry(7,72),new T.MeshStandardMaterial({color:0x1a1a1f,metalness:.05,roughness:.95}));
-ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+  :root{
+    --ink:#0b0f16; --paper:#0e1220; --edge:#0b0f16; --glow:#a5d6ff;
+    --accent:#7ae6ff; --accent2:#ffd77a; --accent3:#ff9bc0; --grass:#0f1a14;
+  }
+  html,body{height:100%}
+  body{
+    margin:0;background:
+      radial-gradient(1200px 800px at 50% -15%,rgba(255,255,255,.08),transparent 60%),
+      radial-gradient(900px 640px at 120% 110%,rgba(255,255,255,.06),transparent 60%),
+      linear-gradient(180deg,#0a0e1a 0%, #0b1220 50%, #0a0e1a 100%);
+    color:#e8ecff; overflow:hidden; touch-action:manipulation;
+    font:14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  }
+  /* Soft vignette & stars */
+  .layer.stars{position:fixed;inset:0;pointer-events:none;opacity:.5}
+  .topbar{
+    position:fixed;left:0;right:0;top:0;display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center;
+    padding:.5rem .75rem;background:linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,0));z-index:10
+  }
+  .topbar a{
+    font:600 13px system-ui,Segoe UI,Roboto,Arial,sans-serif;padding:.35rem .6rem;border-radius:.45rem;
+    text-decoration:none;background:rgba(255,255,255,.08);color:#e6e9ff;border:1px solid rgba(255,255,255,.15)
+  }
 
-const names=["stella","tracy","alexandria","jem","carol","nina","charlotte","abbey","billie","odessa","sorcha","themis","clarice","whitestar","reyczar"];
-const L=new GLTFLoader(), vrms=[];
-const place=()=>{const R=3.8;vrms.forEach((v,i)=>{const t=i/Math.max(1,vrms.length)*Math.PI*2;v.scene.position.set(Math.cos(t)*R,0,Math.sin(t)*R);v.scene.lookAt(0,1.4,0);});};
-const load=u=>new Promise((res,rej)=>{L.load(u,(g)=>{VRMMod.VRM.from(g).then(v=>{v.scene.traverse(o=>{if(o.isMesh){o.frustumCulled=false;o.castShadow=true;o.receiveShadow=true;}});scene.add(v.scene);vrms.push(v);place();res(v);}).catch(rej);},undefined,(e)=>rej(e));});
-let any=false;
-for(const n of names){
-  const url=`../asset/models/${n}.vrm`;
-  try{
-    const h=await fetch(url,{method:"HEAD",cache:"no-store"});
-    if(!h.ok){log(`↳ (missing) <code>${url}</code> — ${h.status}`);continue;}
-    await load(url);log(`✅ <span class="ok">Loaded</span> <code>${n}.vrm</code>`,"ok");any=true;
-  }catch(e){log(`❌ <span class="err">Failed</span> <code>${n}.vrm</code> — ${e?.message||e}`,"err");}
-}
-if(!any){
-  const sample="https://pixiv.github.io/three-vrm/examples/models/VRM/AliciaSolid.vrm";
-  log(`<b>No local VRMs found.</b> Loading sample…`);
-  try{await load(sample);log(`✅ <span class="ok">Sample VRM loaded</span>`,"ok");}catch(e){log(`❌ <span class="err">Sample failed</span> — ${e?.message||e}`,"err");}
-}
-addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();r.setSize(innerWidth,innerHeight);});
-(function ani(){ctl.update();r.render(scene,cam);requestAnimationFrame(ani);})();
-</script></body></html>
+  /* Map container */
+  #mapwrap{position:fixed; inset:0; display:grid; place-items:center; z-index:1}
+  svg{width:min(1600px, 100vw); height:min(1000px, 100vh); max-width:100vw; max-height:100vh; display:block}
+
+  /* “Ink” style */
+  .outline{stroke:rgba(255,255,255,.18); stroke-width:2; paint-order:stroke fill; filter:drop-shadow(0 0 6px rgba(165,214,255,.15))}
+  .label{font:700 14px ui-monospace,Menlo,Consolas,monospace; letter-spacing:.02em; fill:#eaf1ff; text-shadow:0 1px 0 #000}
+  .chip{font:600 12px system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; fill:#eaf1ff}
+  .hint{fill:#a5d6ff}
+
+  /* Clickable building hit areas */
+  a.building{cursor:pointer}
+  a.building:focus-visible .halo,
+  a.building:hover .halo{opacity:.8}
+
+  .halo{opacity:.0; transition:opacity .15s ease;
+        filter:drop-shadow(0 0 10px rgba(165,214,255,.35)) drop-shadow(0 0 18px rgba(165,214,255,.25))}
+  .tile{fill:rgba(255,255,255,.04); stroke:rgba(255,255,255,.15); stroke-width:1.5}
+
+  /* Minimap controls */
+  #ui{position:fixed; right:.75rem; bottom:.75rem; z-index:11; display:flex; gap:.4rem; flex-wrap:wrap}
+  #ui button{
+    background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.2); color:#eaf1ff;
+    border-radius:.5rem; padding:.45rem .6rem; font:600 13px system-ui; backdrop-filter:blur(6px)
+  }
+  #ui button:active{transform:translateY(1px)}
+  #hud{position:fixed;left:.75rem;bottom:.75rem;z-index:11;
+       background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.18);border-radius:.5rem;padding:.5rem .65rem;
+       font:12px ui-monospace,Menlo,Consolas,monospace;color:#cde1ff;max-width:60vw}
+  #hud b{color:#a5d6ff}
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <a href="../index.html">Home</a>
+  </div>
+
+  <!-- Subtle starfield canvas (cheap to draw) -->
+  <canvas class="layer stars" id="stars"></canvas>
+
+  <div id="mapwrap">
+    <!-- SVG map (all buildings are vector; no images) -->
+    <svg viewBox="0 0 1600 1000" role="img" aria-label="Fantasy Castle Town map">
+      <!-- Terrain -->
+      <defs>
+        <radialGradient id="g-hollow" cx="50%" cy="40%">
+          <stop offset="0" stop-color="#14201c"/>
+          <stop offset="1" stop-color="#0b1116"/>
+        </radialGradient>
+        <linearGradient id="g-path" x1="0" x2="1">
+          <stop offset="0" stop-color="#2b2a1f"/>
+          <stop offset="1" stop-color="#3a3828"/>
+        </linearGradient>
+        <linearGradient id="g-water" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stop-color="#0e1d33"/>
+          <stop offset="1" stop-color="#0a1420"/>
+        </linearGradient>
+      </defs>
+
+      <!-- Lake + island -->
+      <ellipse cx="800" cy="520" rx="720" ry="420" fill="url(#g-water)" opacity=".25"/>
+      <ellipse cx="800" cy="520" rx="640" ry="360" fill="url(#g-hollow)"/>
+
+      <!-- Plaza ring -->
+      <circle cx="800" cy="520" r="240" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="3" />
+      <circle cx="800" cy="520" r="245" fill="none" stroke="rgba(165,214,255,.20)" stroke-width="1" stroke-dasharray="6 8"/>
+
+      <!-- Paths -->
+      <path d="M800,520 L800,260" stroke="url(#g-path)" stroke-width="18" opacity=".55"/>
+      <path d="M800,520 L560,380" stroke="url(#g-path)" stroke-width="16" opacity=".5"/>
+      <path d="M800,520 L1040,380" stroke="url(#g-path)" stroke-width="16" opacity=".5"/>
+      <path d="M800,520 L560,680" stroke="url(#g-path)" stroke-width="16" opacity=".5"/>
+      <path d="M800,520 L1040,680" stroke="url(#g-path)" stroke-width="16" opacity=".5"/>
+
+      <!-- ===== Buildings ===== -->
+      <!-- Each building = <a class="building" xlink:href="..."> with a fancy tile, icon, and label -->
+
+      <!-- Palace (White Star & ReyCzar) -->
+      <a class="building" xlink:href="../buildings/palace.html">
+        <g transform="translate(800,220)">
+          <ellipse class="tile" rx="120" ry="55" />
+          <g class="halo"><circle r="75" fill="none" stroke="#a5d6ff" stroke-width="2" stroke-dasharray="8 10"/></g>
+          <!-- little castle -->
+          <g transform="translate(-36,-28) scale(1.2)">
+            <rect x="0" y="24" width="72" height="38" fill="#2b2e48" class="outline"/>
+            <rect x="-8" y="10" width="24" height="28" fill="#2b2e48" class="outline"/>
+            <rect x="56" y="10" width="24" height="28" fill="#2b2e48" class="outline"/>
+            <rect x="28" y="0" width="16" height="20" fill="#2b2e48" class="outline"/>
+            <rect x="30" y="44" width="12" height="18" fill="#0f1322" class="outline"/>
+          </g>
+          <text class="label" text-anchor="middle" y="88">Palace — White Star & ReyCzar</text>
+        </g>
+      </a>
+
+      <!-- Abbey — Grand Vault (NW) -->
+      <a class="building" xlink:href="../buildings/abbey.html">
+        <g transform="translate(540,360)">
+          <ellipse class="tile" rx="110" ry="50"/>
+          <g class="halo"><circle r="68" fill="none" stroke="#ffd77a" stroke-width="2" stroke-dasharray="8 10"/></g>
+          <g transform="translate(-30,-20) scale(1.2)">
+            <rect x="0" y="10" width="60" height="40" rx="8" fill="#483f2b" class="outline"/>
+            <circle cx="30" cy="30" r="10" fill="#1a120a" class="outline"/>
+          </g>
+          <text class="label" text-anchor="middle" y="78">Abbey — Grand Vault</text>
+        </g>
+      </a>
+
+      <!-- Billie — Mansion w/ stock wall (NE) -->
+      <a class="building" xlink:href="../buildings/billie.html">
+        <g transform="translate(1060,360)">
+          <ellipse class="tile" rx="110" ry="50"/>
+          <g class="halo"><circle r="68" fill="none" stroke="#9dd5ff" stroke-width="2" stroke-dasharray="8 10"/></g>
+          <g transform="translate(-38,-20) scale(1.15)">
+            <rect x="0" y="18" width="76" height="36" rx="6" fill="#213048" class="outline"/>
+            <rect x="8" y="24" width="60" height="10" fill="#102238"/>
+            <rect x="8" y="36" width="60" height="10" fill="#102238"/>
+          </g>
+          <text class="label" text-anchor="middle" y="78">Billie — Mansion</text>
+        </g>
+      </a>
+
+      <!-- Odessa — Museum Mansion (W) -->
+      <a class="building" xlink:href="../buildings/odessa.html">
+        <g transform="translate(420,520)">
+          <ellipse class="tile" rx="110" ry="48"/>
+          <g class="halo"><circle r="65" fill="none" stroke="#ffc0d4" stroke-width="2" stroke-dasharray="8 10"/></g>
+          <g transform="translate(-40,-18) scale(1.1)">
+            <rect x="0" y="20" width="80" height="34" fill="#40283a" class="outline"/>
+            <rect x="10" y="10" width="60" height="16" fill="#40283a" class="outline"/>
+          </g>
+          <text class="label" text-anchor="middle" y="76">Odessa — Museum Mansion</text>
+        </g>
+      </a>
+
+      <!-- Sorcha — Influencer Mansion (E) -->
+      <a class="building" xlink:href="../buildings/sorcha.html">
+        <g transform="translate(1180,520)">
+          <ellipse class="tile" rx="110" ry="48"/>
+          <g class="halo"><circle r="65" fill="none" stroke="#ff7aa8" stroke-width="2" stroke-dasharray="8 10"/></g>
+          <g transform="translate(-42,-20) scale(1.1)">
+            <rect x="0" y="20" width="84" height="34" fill="#44203a" class="outline"/>
+            <circle cx="22" cy="38" r="6" fill="#101020"/><rect x="34" y="30" width="36" height="16" fill="#101020"/>
+          </g>
+          <text class="label" text-anchor="middle" y="76">Sorcha — Influencer Mansion</text>
+        </g>
+      </a>
+
+      <!-- Nina — Cyber/Steampunk Lab (SW) -->
+      <a class="building" xlink:href="../buildings/nina.html">
+        <g transform="translate(540,680)">
+          <ellipse class="tile" rx="110" ry="48"/>
+          <g class="halo"><circle r="64" fill="none" stroke="#8fd1ff" stroke-width="2" stroke-dasharray="8 10"/></g>
+          <g transform="translate(-38,-18) scale(1.15)">
+            <rect x="0" y="18" width="76" height="36" rx="6" fill="#163244" class="outline"/>
+            <rect x="10" y="26" width="24" height="6" fill="#0b1e2b"/>
+            <rect x="40" y="26" width="24" height="6" fill="#0b1e2b"/>
+          </g>
+          <text class="label" text-anchor="middle" y="76">Nina — Cyber/Steam Lab</text>
+        </g>
+      </a>
+
+      <!-- Charlotte — Relay Tower (SE) -->
+      <a class="building" xlink:href="../buildings/charlotte.html">
+        <g transform="translate(1060,680)">
+          <ellipse class="tile" rx="110" ry="48"/>
+          <g class="halo"><circle r="64" fill="none" stroke="#b8dcff" stroke-width="2" stroke-dasharray="8 10"/></g>
+          <g transform="translate(-8,-30)">
+            <rect x="-12" y="18" width="24" height="90" fill="#25384a" class="outline"/>
+            <polygon points="-10,18 0,0 10,18" fill="#25384a" class="outline"/>
+            <line x1="-12" y1="60" x2="12" y2="60" stroke="#7aa3d8" stroke-width="2"/>
+            <line x1="-12" y1="42" x2="12" y2="42" stroke="#7aa3d8" stroke-width="2"/>
+          </g>
+          <text class="label" text-anchor="middle" y="76">Charlotte — Relay Tower</text>
+        </g>
+      </a>
+
+      <!-- Themis — Compliance -->
+      <a class="building" xlink:href="../buildings/themis.html">
+        <g transform="translate(800,740)">
+          <ellipse class="tile" rx="110" ry="50"/>
+          <g class="halo"><circle r="66" fill="none" stroke="#9fead1" stroke-width="2" stroke-dasharray="8 10"/></g>
+          <g transform="translate(-36,-18) scale(1.1)">
+            <rect x="0" y="18" width="72" height="36" fill="#1c2a2c" class="outline"/>
+            <rect x="28" y="26" width="16" height="20" fill="#0d1718" class="outline"/>
+          </g>
+          <text class="label" text-anchor="middle" y="78">Themis — Chamber of Compliance</text>
+        </g>
+      </a>
+
+      <!-- Clarice — City Hall (Judge) -->
+      <a class="building" xlink:href="../buildings/clarice.html">
+        <g transform="translate(960,780)">
+          <ellipse class="tile" rx="110" ry="46"/>
+          <g class="halo"><circle r="62" fill="none" stroke="#c7d0ff" stroke-width="2" stroke-dasharray="8 10"/></g>
+          <g transform="translate(-40,-16) scale(1.05)">
+            <rect x="0" y="24" width="80" height="32" fill="#1b2230" class="outline"/>
+            <polygon points="0,24 40,4 80,24" fill="#1b2230" class="outline"/>
+          </g>
+          <text class="label" text-anchor="middle" y="72">Clarice — City Hall</text>
+        </g>
+      </a>
+
+      <!-- Carol — Restaurant (by the Dojo) -->
+      <a class="building" xlink:href="../buildings/carol.html">
+        <g transform="translate(640,780)">
+          <ellipse class="tile" rx="108" ry="46"/>
+          <g class="halo"><circle r="62" fill="none" stroke="#ffd09c" stroke-width="2" stroke-dasharray="8 10"/></g>
+          <g transform="translate(-38,-18) scale(1.05)">
+            <rect x="0" y="26" width="76" height="30" fill="#3a2a1a" class="outline"/>
+            <rect x="18" y="22" width="40" height="10" fill="#4d3520" class="outline"/>
+          </g>
+          <text class="label" text-anchor="middle" y="72">Carol — Restaurant (Dojo)</text>
+        </g>
+      </a>
+
+      <!-- Jem — Dojo -->
+      <a class="building" xlink:href="../buildings/jem.html">
+        <g transform="translate(540,840)">
+          <ellipse class="tile" rx="104" ry="42"/>
+          <g class="halo"><circle r="60" fill="none" stroke="#d9ffb3" stroke-width="2" stroke-dasharray="8 10"/></g>
+          <g transform="translate(-40,-14) scale(1.0)">
+            <rect x="0" y="26" width="80" height="28" fill="#2a2c1e" class="outline"/>
+            <polygon points="0,26 40,8 80,26" fill="#2a2c1e" class="outline"/>
+          </g>
+          <text class="label" text-anchor="middle" y="68">Jem — Dojo</text>
+        </g>
+      </a>
+
+      <!-- Stella — Observatory / Apothecary -->
+      <a class="building" xlink:href="../buildings/stella.html">
+        <g transform="translate(640,260)">
+          <ellipse class="tile" rx="100" ry="42"/>
+          <g class="halo"><circle r="60" fill="none" stroke="#c8dcff" stroke-width="2" stroke-dasharray="8 10"/></g>
+          <g transform="translate(-30,-20)">
+            <circle cx="0" cy="36" r="18" fill="#223044" class="outline"/>
+            <rect x="18" y="22" width="54" height="28" fill="#223044" class="outline"/>
+          </g>
+          <text class="label" text-anchor="middle" y="68">Stella — Observatory</text>
+        </g>
+      </a>
+
+      <!-- Tracy — Cathedral Studio -->
+      <a class="building" xlink:href="../buildings/tracy.html">
+        <g transform="translate(960,260)">
+          <ellipse class="tile" rx="100" ry="42"/>
+          <g class="halo"><circle r="60" fill="none" stroke="#d8c0ff" stroke-width="2" stroke-dasharray="8 10"/></g>
+          <g transform="translate(-30,-22)">
+            <path d="M0,48 L0,24 Q30,0 60,24 L60,48 Z" fill="#2b1f33" class="outline"/>
+            <rect x="24" y="34" width="12" height="12" fill="#120b16"/>
+          </g>
+          <text class="label" text-anchor="middle" y="68">Tracy — Cathedral Studio</text>
+        </g>
+      </a>
+
+      <!-- Alexandria — Library -->
+      <a class="building" xlink:href="../buildings/alexandria.html">
+        <g transform="translate(960,840)">
+          <ellipse class="tile" rx="104" ry="42"/>
+          <g class="halo"><circle r="60" fill="none" stroke="#d0f0b0" stroke-width="2" stroke-dasharray="8 10"/></g>
+          <g transform="translate(-38,-14)">
+            <rect x="0" y="26" width="76" height="28" fill="#23301c" class="outline"/>
+            <rect x="8" y="30" width="60" height="6" fill="#121a10"/>
+            <rect x="8" y="40" width="60" height="6" fill="#121a10"/>
+          </g>
+          <text class="label" text-anchor="middle" y="68">Alexandria — Library</text>
+        </g>
+      </a>
+    </svg>
+  </div>
+
+  <div id="ui">
+    <button id="zoomIn" aria-label="Zoom in">＋</button>
+    <button id="zoomOut" aria-label="Zoom out">－</button>
+    <button id="center" aria-label="Center map">Center</button>
+  </div>
+
+  <div id="hud">Tip: tap a building to enter. This map uses <b>SVG</b> so it’s crisp and fast on iPad.</div>
+
+<script>
+  /* Soft starfield that won’t drain battery */
+  (function stars(){
+    const c=document.getElementById('stars'),x=c.getContext('2d');
+    const DPR=Math.min(devicePixelRatio||1,2); c.width=innerWidth*DPR; c.height=innerHeight*DPR; c.style.width='100%'; c.style.height='100%';
+    x.scale(DPR,DPR);
+    x.clearRect(0,0,innerWidth,innerHeight);
+    const n=Math.min(150, Math.floor((innerWidth*innerHeight)/14000));
+    for(let i=0;i<n;i++){
+      const r=Math.random()*1.6, a=.3+Math.random()*.7;
+      x.fillStyle=`rgba(200,220,255,${a})`;
+      x.beginPath(); x.arc(Math.random()*innerWidth,Math.random()*innerHeight,r,0,Math.PI*2); x.fill();
+    }
+    addEventListener('resize',stars,{once:true});
+  })();
+
+  /* Simple zoom/pan for the whole SVG (works with buttons; pinch-zoom just uses Safari’s native) */
+  (function zoomer(){
+    const svg=document.querySelector('svg');
+    let scale=1, tx=0, ty=0;
+    const apply=()=>{svg.style.transform=`translate(${tx}px,${ty}px) scale(${scale})`; svg.style.transformOrigin='50% 50%';}
+    document.getElementById('zoomIn').onclick=()=>{scale=Math.min(2.0, +(scale+0.1).toFixed(2)); apply();}
+    document.getElementById('zoomOut').onclick=()=>{scale=Math.max(0.7, +(scale-0.1).toFixed(2)); apply();}
+    document.getElementById('center').onclick=()=>{scale=1; tx=ty=0; apply();}
+    // drag to pan
+    let p=null;
+    svg.addEventListener('pointerdown',e=>{p={x:e.clientX,y:e.clientY,tx,ty}; svg.setPointerCapture(e.pointerId);});
+    svg.addEventListener('pointermove',e=>{ if(!p) return; tx=p.tx+(e.clientX-p.x); ty=p.ty+(e.clientY-p.y); apply(); });
+    svg.addEventListener('pointerup',()=>p=null);
+    apply();
+  })();
+</script>
+</body>
+</html>
