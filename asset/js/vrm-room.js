@@ -1,6 +1,7 @@
-// vrm-room.js — v4 (iPad tuned)
-// Three + VRM (ESM) with safe pixel ratio, strong framing, and lightweight scenery.
-const VER="0.152.2";
+// vrm-room.js — v5 (iPad tuned, three-vrm v2 style)
+// Loads .vrm using GLTFLoader + VRMLoaderPlugin and always frames the avatar.
+
+const VER = "0.152.2";
 const THREE_URL = `https://esm.sh/three@${VER}`;
 const ORBIT_URL = `https://esm.sh/three@${VER}/examples/jsm/controls/OrbitControls.js`;
 const GLTF_URL  = `https://esm.sh/three@${VER}/examples/jsm/loaders/GLTFLoader.js`;
@@ -9,46 +10,50 @@ const VRM_URL   = `https://esm.sh/@pixiv/three-vrm@2.0.7?deps=three@${VER}`;
 const T = await import(THREE_URL);
 const { OrbitControls } = await import(ORBIT_URL);
 const { GLTFLoader }   = await import(GLTF_URL);
-const VRM = await import(VRM_URL);
+
+// v2 API: use VRMLoaderPlugin (no VRM.from)
+const { VRMLoaderPlugin /*, VRMUtils */ } = await import(VRM_URL);
 
 const body = document.body;
-const modelURL = body.dataset.model;                       // e.g. ../asset/models/abbey.vrm?v=4
-const roomType = (body.dataset.room || "").toLowerCase();  // e.g. 'vault'
+const modelURL = body.dataset.model;                       // ../asset/models/abbey.vrm?v=5
+const roomType = (body.dataset.room || "").toLowerCase();
 const titleTxt = body.dataset.title || document.title;
 const bg = (body.dataset.bg || "#0b0f16,#0a0e1a").split(",");
 document.title = titleTxt;
 
-// --- HUD
+// HUD
 const hud = document.getElementById("hud");
 const log = (m,c="")=>{ const d=document.createElement("div"); if(c)d.className=c; d.innerHTML=m; hud.appendChild(d); hud.scrollTop=hud.scrollHeight; };
-log(`Boot v4 • three@${VER} • model: <code>${modelURL||"—"}</code>`);
+log(`Boot v5 • three@${VER} • three-vrm@2 • model: <code>${modelURL||"—"}</code>`);
 
-// --- renderer / scene / camera
+// Renderer / Scene / Camera (iPad-safe DPR)
 const canvas = document.getElementById("scene");
 const R = new T.WebGLRenderer({ canvas, antialias:true, alpha:true, powerPreference:"high-performance" });
-// iPad safety: fixed 1.0 pixel ratio avoids WebGL memory spikes on Retina
-R.setPixelRatio(1.0);
+R.setPixelRatio(1.0); // iPad safety
 R.setSize(innerWidth, innerHeight);
 R.outputColorSpace = T.SRGBColorSpace;
 
 const S = new T.Scene();
 const C = new T.PerspectiveCamera(42, innerWidth/innerHeight, 0.1, 1200);
-C.position.set(0, 1.7, 3.8);
+C.position.set(0,1.7,3.8);
 const ctl = new OrbitControls(C, R.domElement);
 ctl.target.set(0,1.5,0); ctl.enableDamping = true;
 
-// gradient background via CSS
+// Background
 document.documentElement.style.height="100%";
 document.body.style.height="100%";
-document.body.style.background = `radial-gradient(60% 45% at 50% 15%, rgba(255,255,255,.06), rgba(0,0,0,0)), linear-gradient(180deg, ${bg[0]} 0%, ${bg[1]} 100%)`;
+document.body.style.background =
+  `radial-gradient(60% 45% at 50% 15%, rgba(255,255,255,.06), rgba(0,0,0,0)),
+   linear-gradient(180deg, ${bg[0]} 0%, ${bg[1]} 100%)`;
 
-// lights + ground
+// Lights + ground
 S.add(new T.HemisphereLight(0xffffff, 0x223344, 0.9));
 const sun = new T.DirectionalLight(0xffffff, 1.05); sun.position.set(4,7,3); S.add(sun);
-const ground = new T.Mesh(new T.CircleGeometry(5.2, 72), new T.MeshStandardMaterial({ color:0x141721, metalness:.06, roughness:.94 }));
+const ground = new T.Mesh(new T.CircleGeometry(5.2, 72),
+  new T.MeshStandardMaterial({ color:0x141721, metalness:.06, roughness:.94 }));
 ground.rotation.x = -Math.PI/2; ground.receiveShadow = true; S.add(ground);
 
-// ---------- Camera helpers (guarantee visibility) ----------
+// Camera framing (guarantee visibility)
 const fitToObject=(obj, margin=1.28)=>{
   const b=new T.Box3().setFromObject(obj), s=b.getSize(new T.Vector3());
   if(s.y>0){ const norm=1.7/s.y; obj.scale.setScalar(Math.min(3.0, Math.max(0.2, norm))); }
@@ -60,36 +65,34 @@ const fitToObject=(obj, margin=1.28)=>{
   ctl.target.copy(c2); C.lookAt(c2);
 };
 
-// ---------- Procedural scenery ----------
+// Minimal scenery (others reuse same file)
 function addScenery(type){
-  const std = (color, m=.1, r=.9)=> new T.MeshStandardMaterial({ color, metalness:m, roughness:r });
-  const add = (m)=>{ m.receiveShadow = m.castShadow = false; S.add(m); };
-
-  switch(type){
-    case "vault": {
-      for(let i=0;i<18;i++){
-        const g = Math.random()<.5 ? new T.CylinderGeometry(.12,.12,.2+Math.random()*.5,16) : new T.BoxGeometry(.2,.12,.2);
-        const m = std([0xffd86b,0xf6c244,0xd7b98b][i%3], .3, .5);
-        const c = new T.Mesh(g,m);
-        c.position.set((Math.random()-.5)*2.6, .06, (Math.random()-.5)*2.2-0.6);
-        add(c);
-      } break;
+  const add = m=>{ m.receiveShadow=m.castShadow=false; S.add(m); };
+  const mat = (c,m=.1,r=.9)=> new T.MeshStandardMaterial({color:c,metalness:m,roughness:r});
+  if(type==="vault"){
+    for(let i=0;i<18;i++){
+      const g=Math.random()<.5?new T.CylinderGeometry(.12,.12,.2+Math.random()*.5,16):new T.BoxGeometry(.2,.12,.2);
+      const m=mat([0xffd86b,0xf6c244,0xd7b98b][i%3],.3,.5);
+      const c=new T.Mesh(g,m); c.position.set((Math.random()-.5)*2.6,.06,(Math.random()-.5)*2.2-0.6); add(c);
     }
-    // other rooms keep working with this same file
   }
 }
 
-// ---------- Load VRM ----------
+// --- Load VRM via GLTFLoader + VRMLoaderPlugin ---
 const loader = new GLTFLoader();
+loader.register((parser)=> new VRMLoaderPlugin(parser));  // << key line
+
 try{
-  if(!modelURL){ log("❌ No model URL provided in data-model","err"); }
+  if(!modelURL){ log("❌ No model URL in data-model","err"); }
   else{
     const head = await fetch(modelURL,{method:"HEAD",cache:"no-store"});
     log(`HEAD ${head.status} — <code>${modelURL}</code>`);
     if(!head.ok){ log(`❌ Missing model: <code>${modelURL}</code>`,"err"); }
     else{
-      const gltf = await new Promise((res,rej)=>loader.load(modelURL, res, undefined, rej));
-      const vrm = await VRM.VRM.from(gltf);
+      const gltf = await new Promise((res,rej)=> loader.load(modelURL, res, undefined, rej));
+      // three-vrm v2 attaches the VRM instance here:
+      const vrm = gltf.userData?.vrm;
+      if(!vrm){ throw new Error("No VRM instance on gltf.userData.vrm"); }
       vrm.scene.traverse(o=>{ if(o.isMesh){ o.frustumCulled=false; o.castShadow=false; o.receiveShadow=false; }});
       S.add(vrm.scene);
       fitToObject(vrm.scene, 1.32);
@@ -98,9 +101,7 @@ try{
   }
 }catch(e){ log(`❌ Load error: ${e?.message||e}`,"err"); }
 
-// ---------- Scenery ----------
+// Scenery + animate
 addScenery(roomType);
-
-// ---------- Resize / animate ----------
 addEventListener("resize", ()=>{ C.aspect=innerWidth/innerHeight; C.updateProjectionMatrix(); R.setSize(innerWidth,innerHeight); }, {passive:true});
 (function loop(){ ctl.update(); R.render(S,C); requestAnimationFrame(loop); })();
