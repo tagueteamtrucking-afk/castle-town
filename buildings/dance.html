@@ -1,204 +1,213 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-  <title>Dance Floor — White Star + Rey Czar</title>
-  <style>
-    html,body{height:100%;margin:0;background:#0b0f1a;color:#e7ecff;font-family:-apple-system,system-ui,Segoe UI,Roboto,sans-serif}
-    canvas{display:block;width:100%;height:100%}
-    #ui{position:fixed;left:0;right:0;bottom:0;display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center;align-items:center;
-        padding:.75rem 1rem;background:linear-gradient(180deg,rgba(11,15,26,0),rgba(11,15,26,.85) 30%,rgba(11,15,26,.96));
-        -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);z-index:10}
-    button{border:1px solid #3b4b7d;background:#1a2240;color:#e7ecff;border-radius:12px;padding:.6rem .85rem;font-weight:600;letter-spacing:.2px}
-    button:active{transform:translateY(1px)}
-    .tag{opacity:.85;font-size:.85rem;margin:0 .25rem}
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Dance — White Star + Rey Czar</title>
+<style>
+  html,body{height:100%;margin:0;background:#0b0f1a;color:#e7ecff;font-family:-apple-system,system-ui,Segoe UI,Roboto,sans-serif}
+  canvas{display:block;width:100%;height:100%}
+  #ui{position:fixed;left:0;right:0;bottom:0;display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center;align-items:center;
+      padding:.75rem 1rem;background:linear-gradient(180deg,rgba(11,15,26,0),rgba(11,15,26,.85) 30%,rgba(11,15,26,.96));
+      -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);z-index:10}
+  button{border:1px solid #3b4b7d;background:#1a2240;color:#e7ecff;border-radius:12px;padding:.6rem .9rem;font-weight:600}
+  .tag{opacity:.85;font-size:.85rem;margin:0 .25rem}
+  #badges{position:fixed;left:.6rem;top:.6rem;display:flex;gap:.4rem;z-index:11}
+  .badge{background:#143d1e;border:1px solid #2f7b3d;color:#bff3c7;padding:.25rem .5rem;border-radius:8px;font-size:.8rem;display:none}
+  #dbg{position:fixed;right:.6rem;bottom:4.3rem;width:min(90vw,520px);max-height:35vh;overflow:auto;background:#0b0f1a;
+       border:1px solid #3b4b7d;border-radius:10px;padding:.5rem;font:12px ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;z-index:10}
+</style>
 </head>
 <body>
-  <div id="ui">
-    <span class="tag">Everyone</span>
-    <button id="idleAll">Idle</button>
-    <button id="waveAll">Wave</button>
-    <span class="tag">White Star</span>
-    <button id="wsIdle">Idle</button>
-    <button id="wsWave">Wave</button>
-    <span class="tag">Rey Czar</span>
-    <button id="rcIdle">Idle</button>
-    <button id="rcWave">Wave</button>
-    <span class="tag">Duo</span>
-    <button id="dance">Dance</button>
-    <button id="stopDance">Stop</button>
+  <div id="badges">
+    <span id="wsBadge" class="badge">White Star: Loaded</span>
+    <span id="rcBadge" class="badge">Rey Czar: Loaded</span>
   </div>
 
-  <script type="module">
-    // === iPad/GitHub Pages friendly CDN modules ===
-    import * as THREE from 'https://unpkg.com/three@0.152.2/build/three.module.js';
-    import { OrbitControls } from 'https://unpkg.com/three@0.152.2/examples/jsm/controls/OrbitControls.js';
-    import { GLTFLoader } from 'https://unpkg.com/three@0.152.2/examples/jsm/loaders/GLTFLoader.js';
-    import { VRMLoaderPlugin, VRMUtils } from 'https://unpkg.com/@pixiv/three-vrm@2.0.4/lib/three-vrm.module.js';
+  <div id="ui">
+    <span class="tag">Auto-Idle</span>
+    <button id="idleOn">ON</button><button id="idleOff">OFF</button>
+    <span class="tag">Everyone</span>
+    <button id="waveAll">Wave</button>
+    <span class="tag">White Star</span>
+    <button id="wsWave">Wave</button>
+    <span class="tag">Rey Czar</span>
+    <button id="rcWave">Wave</button>
+    <span class="tag">Duo</span>
+    <button id="dance">Dance</button><button id="stopDance">Stop</button>
+  </div>
 
-    // === Your model paths (match your repo) ===
-    const WHITE_STAR_URL = '../asset/models/whitestar.vrm';
-    const REY_CZAR_URL   = '../asset/models/reyczar.vrm';
+  <div id="dbg"></div>
 
-    // --- Renderer (mobile friendly) ---
-    const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true, powerPreference:'high-performance' });
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); // cap on iPad
+<script type="module">
+  // ===== CDN ES modules (Safari/iPad OK) =====
+  import * as THREE from 'https://unpkg.com/three@0.152.2/build/three.module.js';
+  import { OrbitControls } from 'https://unpkg.com/three@0.152.2/examples/jsm/controls/OrbitControls.js';
+  import { GLTFLoader } from 'https://unpkg.com/three@0.152.2/examples/jsm/loaders/GLTFLoader.js';
+  import { VRMLoaderPlugin, VRMUtils } from 'https://unpkg.com/@pixiv/three-vrm@2.0.4/lib/three-vrm.module.js';
+
+  // ===== PATHS (match your repo) =====
+  const WHITE_STAR_URL = '../asset/models/whitestar.vrm';
+  const REY_CZAR_URL   = '../asset/models/reyczar.vrm';
+
+  // ===== Debug overlay =====
+  const dbg = document.getElementById('dbg');
+  function log(...args){ const s = args.map(a=>typeof a==='object'?JSON.stringify(a,null,2):String(a)).join(' ');
+    dbg.textContent += s+'\n'; dbg.scrollTop = dbg.scrollHeight; }
+  window.addEventListener('error', e=>log('Error:', e.message));
+  window.addEventListener('unhandledrejection', e=>log('Promise:', e.reason?.message||e.reason));
+
+  // ===== Renderer / scene =====
+  const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true, powerPreference:'high-performance' });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(innerWidth, innerHeight);
+  document.body.prepend(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0x0b0f1a, 12, 40);
+
+  const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.1, 200);
+  camera.position.set(0, 1.55, 5);
+
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+
+  scene.add(new THREE.HemisphereLight(0xbcd1ff, 0x141414, 1.0));
+  const dir = new THREE.DirectionalLight(0xffffff, 1.1); dir.position.set(3,6,3); scene.add(dir);
+
+  const ground = new THREE.Mesh(
+    new THREE.CircleGeometry(30, 64),
+    new THREE.MeshStandardMaterial({ color:0x101736, roughness:.95, metalness:.15 })
+  );
+  ground.rotation.x = -Math.PI/2; ground.receiveShadow = true; scene.add(ground);
+
+  // ===== Loader =====
+  const loader = new GLTFLoader();
+  loader.register(p => new VRMLoaderPlugin(p));
+  async function loadVRM(url, badgeEl){
+    log('Loading', url);
+    const gltf = await loader.loadAsync(url);
+    const vrm  = gltf.userData.vrm;
+    VRMUtils.removeUnnecessaryJoints(vrm.scene);
+    VRMUtils.rotateVRM0(vrm);
+    vrm.scene.traverse(o => o.frustumCulled = false);
+    badgeEl.style.display = 'inline-block';
+    log('Loaded', url);
+    return vrm;
+  }
+
+  // ===== Actor with robust idle (bones + whole-body) =====
+  class Actor {
+    constructor(label, vrm, anchor){
+      this.label = label; this.vrm = vrm; this.anchor = anchor;
+      this.t = Math.random()*10; this.wave = false; this.autoIdle = true;
+
+      const h = vrm.humanoid;
+      this.b = {
+        chest: h.getNormalizedBoneNode('chest') || h.getNormalizedBoneNode('upperChest'),
+        spine: h.getNormalizedBoneNode('spine'),
+        head:  h.getNormalizedBoneNode('head'),
+        rU:    h.getNormalizedBoneNode('rightUpperArm'),
+        rL:    h.getNormalizedBoneNode('rightLowerArm'),
+        rH:    h.getNormalizedBoneNode('rightHand'),
+        hips:  h.getNormalizedBoneNode('hips'),
+      };
+    }
+    setIdle(on){ this.autoIdle = on; if(!on){ this.resetArms(); } }
+    doWave(){ this.wave = true; }
+    stopWave(){ this.wave = false; this.resetArms(); }
+    resetArms(){
+      ['rU','rL','rH'].forEach(k=>{ const b=this.b[k]; if(b){ b.rotation.set(0,0,0); }});
+    }
+    update(dt){
+      this.t += dt;
+      // Whole-body idle (guaranteed visible)
+      if(this.autoIdle){
+        const sway = Math.sin(this.t*0.6)*0.06;
+        const bob  = Math.sin(this.t*1.2)*0.02;
+        this.anchor.rotation.y = sway;              // body sway
+        this.anchor.position.y = bob;               // gentle bob
+      }
+
+      // Bone breathing/sway (if bones exist)
+      const br = Math.sin(this.t*0.9)*0.02;
+      const sw = Math.sin(this.t*0.6)*0.1;
+      if(this.b.chest) this.b.chest.rotation.x = br;
+      if(this.b.spine) this.b.spine.rotation.y = sw*0.35;
+      if(this.b.head)  this.b.head.rotation.y  = -sw*0.25;
+
+      // Wave
+      if(this.wave){
+        if(this.b.rU) this.b.rU.rotation.z = -1.15;
+        if(this.b.rL) this.b.rL.rotation.z = -0.25;
+        if(this.b.rH) this.b.rH.rotation.y = Math.sin(this.t*6.0)*0.65;
+      }
+    }
+  }
+
+  // ===== Build stage =====
+  const anchors = [new THREE.Group(), new THREE.Group()];
+  anchors[0].position.set(-0.9,0,0);
+  anchors[1].position.set( 0.9,0,0);
+  scene.add(anchors[0], anchors[1]);
+
+  const actors = [];
+  let duo = false, dT = 0;
+
+  Promise.all([
+    loadVRM(WHITE_STAR_URL, document.getElementById('wsBadge')),
+    loadVRM(REY_CZAR_URL,   document.getElementById('rcBadge'))
+  ]).then(([ws, rc])=>{
+    anchors[0].add(ws.scene); ws.scene.rotation.y =  Math.PI/12;
+    anchors[1].add(rc.scene); rc.scene.rotation.y = -Math.PI/12;
+    const A = new Actor('White Star', ws, anchors[0]);
+    const B = new Actor('Rey Czar',   rc, anchors[1]);
+    A.setIdle(true); B.setIdle(true);     // auto-idle ON by default
+    actors.push(A,B);
+  }).catch(e=>log('Load fail:', e));
+
+  // ===== UI =====
+  const on = (id, fn)=>document.getElementById(id).addEventListener('click', fn, {passive:true});
+  on('idleOn',  ()=>actors.forEach(a=>a.setIdle(true)));
+  on('idleOff', ()=>actors.forEach(a=>a.setIdle(false)));
+  on('waveAll', ()=>actors.forEach(a=>a.doWave()));
+  on('wsWave',  ()=>actors[0]?.doWave());
+  on('rcWave',  ()=>actors[1]?.doWave());
+  on('dance',   ()=>{ duo = true; });
+  on('stopDance',()=>{ duo = false; anchors[0].position.set(-0.9,0,0); anchors[1].position.set(0.9,0,0); actors.forEach(a=>a.stopWave()); });
+
+  // ===== Resize / visibility =====
+  addEventListener('resize', ()=>{
+    camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix();
     renderer.setSize(innerWidth, innerHeight);
-    document.body.prepend(renderer.domElement);
+  }, {passive:true});
 
-    // --- Scene / Camera / Controls ---
-    const scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(0x0b0f1a, 12, 40);
+  let running = true;
+  document.addEventListener('visibilitychange', ()=>{ running = !document.hidden; });
 
-    const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.1, 200);
-    camera.position.set(0, 1.5, 5);
+  // ===== Loop =====
+  const clock = new THREE.Clock();
+  (function loop(){
+    requestAnimationFrame(loop);
+    if(!running) return;
+    const dt = Math.min(clock.getDelta(), 1/30);
 
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
+    // updates
+    actors.forEach(a=>{ a.update(dt); a.vrm.update(dt); });
 
-    // Lights
-    scene.add(new THREE.HemisphereLight(0xbcd1ff, 0x141414, 1.0));
-    const dir = new THREE.DirectionalLight(0xffffff, 1.1); dir.position.set(3,6,3); scene.add(dir);
-
-    // Ground
-    const ground = new THREE.Mesh(
-      new THREE.CircleGeometry(30, 64),
-      new THREE.MeshStandardMaterial({ color:0x101736, roughness:.95, metalness:.15 })
-    );
-    ground.rotation.x = -Math.PI/2; ground.receiveShadow = true; scene.add(ground);
-
-    // --- Loader with VRM plugin ---
-    const loader = new GLTFLoader();
-    loader.register(p => new VRMLoaderPlugin(p));
-
-    async function loadVRM(url){
-      const gltf = await loader.loadAsync(url);
-      const vrm = gltf.userData.vrm;
-      VRMUtils.removeUnnecessaryJoints(vrm.scene);
-      VRMUtils.rotateVRM0(vrm);
-      vrm.scene.traverse(o => o.frustumCulled = false);
-      return vrm;
+    if(duo && actors.length===2){
+      dT += dt;
+      const r = 1.05;
+      anchors[0].position.set(Math.cos(dT)*r, 0, Math.sin(dT)*r);
+      anchors[1].position.set(Math.cos(dT+Math.PI)*r, 0, Math.sin(dT+Math.PI)*r);
+      anchors[0].lookAt(anchors[1].position);
+      anchors[1].lookAt(anchors[0].position);
+      actors.forEach(a=>a.doWave()); // synchronized hand swing
     }
 
-    // --- Simple procedural animator for idle/wave ---
-    class Actor {
-      constructor(label, vrm, root){
-        this.label = label;
-        this.vrm = vrm;
-        this.root = root;
-        this.mode = 'idle'; // 'idle'|'wave'
-        this.t = Math.random()*10;
-
-        const h = vrm.humanoid;
-        this.b = {
-          chest: h.getNormalizedBoneNode('chest') || h.getNormalizedBoneNode('upperChest'),
-          spine: h.getNormalizedBoneNode('spine'),
-          head:  h.getNormalizedBoneNode('head'),
-          rU:    h.getNormalizedBoneNode('rightUpperArm'),
-          rL:    h.getNormalizedBoneNode('rightLowerArm'),
-          rH:    h.getNormalizedBoneNode('rightHand'),
-          lU:    h.getNormalizedBoneNode('leftUpperArm'),
-          lL:    h.getNormalizedBoneNode('leftLowerArm'),
-          lH:    h.getNormalizedBoneNode('leftHand'),
-          hips:  h.getNormalizedBoneNode('hips'),
-        };
-      }
-      set(m){ this.mode = m; }
-
-      update(dt){
-        this.t += dt;
-
-        // idle: breathe + gentle sway (always on)
-        const breathe = Math.sin(this.t*0.9)*0.02;
-        const sway = Math.sin(this.t*0.6)*0.1;
-        if(this.b.chest) this.b.chest.rotation.x = breathe;
-        if(this.b.spine) this.b.spine.rotation.y = sway*0.35;
-        if(this.b.head)  this.b.head.rotation.y = -sway*0.25;
-
-        if(this.mode === 'wave'){
-          const w = Math.sin(this.t*6.0);
-          if(this.b.rU) this.b.rU.rotation.z = -1.2; // arm up
-          if(this.b.rL) this.b.rL.rotation.z = -0.25;
-          if(this.b.rH) this.b.rH.rotation.y = w*0.6;
-        }else{
-          // reset right arm when not waving
-          if(this.b.rU) this.b.rU.rotation.z *= 0.9;
-          if(this.b.rL) this.b.rL.rotation.z *= 0.9;
-          if(this.b.rH) this.b.rH.rotation.y *= 0.8;
-        }
-      }
-    }
-
-    // --- Load both avatars and place them ---
-    const anchors = [new THREE.Group(), new THREE.Group()];
-    anchors[0].position.set(-0.8, 0, 0);
-    anchors[1].position.set( 0.8, 0, 0);
-    scene.add(anchors[0], anchors[1]);
-
-    const actors = [];
-    let duoMode = false, danceClock = 0;
-
-    Promise.all([ loadVRM(WHITE_STAR_URL), loadVRM(REY_CZAR_URL) ]).then(([ws, rc])=>{
-      anchors[0].add(ws.scene); anchors[1].add(rc.scene);
-      ws.scene.rotation.y =  Math.PI/12;
-      rc.scene.rotation.y = -Math.PI/12;
-      actors.push(new Actor('White Star', ws, anchors[0]));
-      actors.push(new Actor('Rey Czar',   rc, anchors[1]));
-    });
-
-    // --- Buttons ---
-    function on(id, fn){ document.getElementById(id).addEventListener('click', fn, {passive:true}); }
-    on('idleAll', ()=>actors.forEach(a=>a.set('idle')));
-    on('waveAll', ()=>actors.forEach(a=>a.set('wave')));
-    on('wsIdle',  ()=>actors[0]?.set('idle'));
-    on('wsWave',  ()=>actors[0]?.set('wave'));
-    on('rcIdle',  ()=>actors[1]?.set('idle'));
-    on('rcWave',  ()=>actors[1]?.set('wave'));
-    on('dance',   ()=>{ duoMode = true; });
-    on('stopDance',()=>{ duoMode = false; anchors[0].position.set(-0.8,0,0); anchors[1].position.set(0.8,0,0); });
-
-    // --- Resize / visibility (battery-friendly on iPad) ---
-    addEventListener('resize', ()=>{
-      camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix();
-      renderer.setSize(innerWidth, innerHeight);
-    }, {passive:true});
-
-    let running = true;
-    document.addEventListener('visibilitychange', ()=>{ running = !document.hidden; });
-
-    // --- Render loop ---
-    const clock = new THREE.Clock();
-    (function loop(){
-      requestAnimationFrame(loop);
-      if(!running) return;
-      const dt = Math.min(clock.getDelta(), 1/30);
-
-      actors.forEach(a=>{
-        a.update(dt);
-        a.vrm.update(dt);
-      });
-
-      // Partner dance: orbit, face each other, simple hand swing
-      if(duoMode && actors.length===2){
-        danceClock += dt;
-        const r = 1.0;
-        anchors[0].position.set(Math.cos(danceClock)*r, 0, Math.sin(danceClock)*r);
-        anchors[1].position.set(Math.cos(danceClock+Math.PI)*r, 0, Math.sin(danceClock+Math.PI)*r);
-
-        // make them face each other
-        anchors[0].lookAt(anchors[1].position);
-        anchors[1].lookAt(anchors[0].position);
-
-        // encourage slight wave feel
-        actors[0].set('wave');
-        actors[1].set('wave');
-      }
-
-      controls.update();
-      renderer.render(scene, camera);
-    })();
-  </script>
+    controls.update();
+    renderer.render(scene, camera);
+  })();
+</script>
 </body>
 </html>
