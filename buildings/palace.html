@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head>
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Palace — White Star & ReyCzar</title>
+<title>Palace — Throne Room (White Star & ReyCzar)</title>
 <link rel="stylesheet" href="../asset/css/style.css"/>
 <style>
 #hud{position:fixed;right:.75rem;bottom:.75rem;max-width:60vw;max-height:40vh;overflow:auto;font:12px/1.35 ui-monospace,Menlo,monospace;background:rgba(0,0,0,.65);color:#eaeaff;padding:.6rem .7rem;border:1px solid rgba(255,255,255,.18);border-radius:.5rem;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:9999}
@@ -13,10 +13,10 @@
 <canvas id="scene"></canvas><div id="hud">Booting…</div>
 <script type="module">
 const hud=document.getElementById('hud');const log=(m,c="")=>{const p=document.createElement('div');if(c)p.className=c;p.innerHTML=m;hud.appendChild(p);hud.scrollTop=hud.scrollHeight;};
-const VER="0.152.2", THREE_URL=`https://esm.sh/three@${VER}`, ORBIT_URL=`https://esm.sh/three@${VER}/examples/jsm/controls/OrbitControls.js`, GLTF_URL=`https://esm.sh/three@${VER}/examples/jsm/loaders/GLTFLoader.js`, VRM_URL=`https://esm.sh/@pixiv/three-vrm@2.0.7?deps=three@${VER}`;
-let THREE,OrbitControls,GLTFLoader,VRM; try{THREE=await import(THREE_URL);({OrbitControls}=await import(ORBIT_URL));({GLTFLoader}=await import(GLTF_URL));({VRM}=await import(VRM_URL));log(`✅ Imports OK`,"ok");}catch(e){log(`❌ Import failed: ${e?.message||e}`,"err");throw e;}
-const canvas=document.getElementById('scene'), renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);
-const scene=new THREE.Scene(), camera=new THREE.PerspectiveCamera(40,innerWidth/innerHeight,.1,1000);camera.position.set(0,1.75,3.6);
+const VER="0.152.2",THREE_URL=`https://esm.sh/three@${VER}`,ORBIT_URL=`https://esm.sh/three@${VER}/examples/jsm/controls/OrbitControls.js`,GLTF_URL=`https://esm.sh/three@${VER}/examples/jsm/loaders/GLTFLoader.js`,VRM_URL=`https://esm.sh/@pixiv/three-vrm@2.0.7?deps=three@${VER}`;
+let THREE,OrbitControls,GLTFLoader,VRM;try{THREE=await import(THREE_URL);({OrbitControls}=await import(ORBIT_URL));({GLTFLoader}=await import(GLTF_URL));({VRM}=await import(VRM_URL));log(`✅ Imports OK`,"ok");}catch(e){log(`❌ Import failed: ${e?.message||e}`,"err");throw e;}
+const canvas=document.getElementById('scene'),renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);
+const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(40,innerWidth/innerHeight,.1,1000);camera.position.set(0,1.75,3.6);
 const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,1.6,0);controls.enableDamping=true;
 scene.add(new THREE.HemisphereLight(0xffffff,0x444466,0.75));const dir=new THREE.DirectionalLight(0xffffff,1.0);dir.position.set(3,6,2);scene.add(dir);
 const ground=new THREE.Mesh(new THREE.CircleGeometry(5.5,72),new THREE.MeshStandardMaterial({color:0x1a1a1f,metalness:.05,roughness:.95}));ground.rotation.x=-Math.PI/2;scene.add(ground);
@@ -24,7 +24,7 @@ const loader=new GLTFLoader();
 const add=(u,x)=>new Promise((res,rej)=>{loader.load(u,(g)=>{VRM.from(g).then(v=>{v.scene.traverse(o=>{if(o.isMesh){o.frustumCulled=false;o.castShadow=true;o.receiveShadow=true;}});v.scene.position.set(x,0,0);scene.add(v.scene);res(v);}).catch(rej);},undefined,(e)=>rej(e));});
 try{
   const ws="../asset/models/whitestar.vrm", rc="../asset/models/reyczar.vrm";
-  const h1=await fetch(ws,{method:"HEAD",cache:"no-store"}), h2=await fetch(rc,{method:"HEAD",cache:"no-store"});
+  const h1=await fetch(ws,{method:"HEAD",cache:"no-store"}),h2=await fetch(rc,{method:"HEAD",cache:"no-store"});
   if(h1.ok){await add(ws,-0.9);log(`✅ White Star loaded`,"ok");} else log(`❌ Missing whitestar.vrm`,"err");
   if(h2.ok){await add(rc, 0.9);log(`✅ ReyCzar loaded`,"ok");} else log(`❌ Missing reyczar.vrm`,"err");
 }catch(e){log(`❌ Load error: ${e?.message||e}`,"err");}
