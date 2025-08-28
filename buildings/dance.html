@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>Dance Floor — White Star + Rey Czar</title>
+  <style>
+    html,body{height:100%;margin:0;background:#0b0f1a;color:#e7ecff;font-family:-apple-system,system-ui,Segoe UI,Roboto,sans-serif}
+    canvas{display:block;width:100%;height:100%}
+    #ui{position:fixed;left:0;right:0;bottom:0;display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center;align-items:center;
+        padding:.75rem 1rem;background:linear-gradient(180deg,rgba(11,15,26,0),rgba(11,15,26,.85) 30%,rgba(11,15,26,.96));
+        -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);z-index:10}
+    button{border:1px solid #3b4b7d;background:#1a2240;color:#e7ecff;border-radius:12px;padding:.6rem .85rem;font-weight:600;letter-spacing:.2px}
+    button:active{transform:translateY(1px)}
+    .tag{opacity:.85;font-size:.85rem;margin:0 .25rem}
+  </style>
+</head>
+<body>
+  <div id="ui">
+    <span class="tag">Everyone</span>
+    <button id="idleAll">Idle</button>
+    <button id="waveAll">Wave</button>
+    <span class="tag">White Star</span>
+    <button id="wsIdle">Idle</button>
+    <button id="wsWave">Wave</button>
+    <span class="tag">Rey Czar</span>
+    <button id="rcIdle">Idle</button>
+    <button id="rcWave">Wave</button>
+    <span class="tag">Duo</span>
+    <button id="dance">Dance</button>
+    <button id="stopDance">Stop</button>
+  </div>
+
+  <script type="module">
+    // === iPad/GitHub Pages friendly CDN modules ===
+    import * as THREE from 'https://unpkg.com/three@0.152.2/build/three.module.js';
+    import { OrbitControls } from 'https://unpkg.com/three@0.152.2/examples/jsm/controls/OrbitControls.js';
+    import { GLTFLoader } from 'https://unpkg.com/three@0.152.2/examples/jsm/loaders/GLTFLoader.js';
+    import { VRMLoaderPlugin, VRMUtils } from 'https://unpkg.com/@pixiv/three-vrm@2.0.4/lib/three-vrm.module.js';
+
+    // === Your model paths (match your repo) ===
+    const WHITE_STAR_URL = '../asset/models/whitestar.vrm';
+    const REY_CZAR_URL   = '../asset/models/reyczar.vrm';
+
+    // --- Renderer (mobile friendly) ---
+    const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true, powerPreference:'high-performance' });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); // cap on iPad
+    renderer.setSize(innerWidth, innerHeight);
+    document.body.prepend(renderer.domElement);
+
+    // --- Scene / Camera / Controls ---
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x0b0f1a, 12, 40);
+
+    const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.1, 200);
+    camera.position.set(0, 1.5, 5);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+
+    // Lights
+    scene.add(new THREE.HemisphereLight(0xbcd1ff, 0x141414, 1.0));
+    const dir = new THREE.DirectionalLight(0xffffff, 1.1); dir.position.set(3,6,3); scene.add(dir);
+
+    // Ground
+    const ground = new THREE.Mesh(
+      new THREE.CircleGeometry(30, 64),
+      new THREE.MeshStandardMaterial({ color:0x101736, roughness:.95, metalness:.15 })
+    );
+    ground.rotation.x = -Math.PI/2; ground.receiveShadow = true; scene.add(ground);
+
+    // --- Loader with VRM plugin ---
+    const loader = new GLTFLoader();
+    loader.register(p => new VRMLoaderPlugin(p));
+
+    async function loadVRM(url){
+      const gltf = await loader.loadAsync(url);
+      const vrm = gltf.userData.vrm;
+      VRMUtils.removeUnnecessaryJoints(vrm.scene);
+      VRMUtils.rotateVRM0(vrm);
+      vrm.scene.traverse(o => o.frustumCulled = false);
+      return vrm;
+    }
+
+    // --- Simple procedural animator for idle/wave ---
+    class Actor {
+      constructor(label, vrm, root){
+        this.label = label;
+        this.vrm = vrm;
+        this.root = root;
+        this.mode = 'idle'; // 'idle'|'wave'
+        this.t = Math.random()*10;
+
+        const h = vrm.humanoid;
+        this.b = {
+          chest: h.getNormalizedBoneNode('chest') || h.getNormalizedBoneNode('upperChest'),
+          spine: h.getNormalizedBoneNode('spine'),
+          head:  h.getNormalizedBoneNode('head'),
+          rU:    h.getNormalizedBoneNode('rightUpperArm'),
+          rL:    h.getNormalizedBoneNode('rightLowerArm'),
+          rH:    h.getNormalizedBoneNode('rightHand'),
+          lU:    h.getNormalizedBoneNode('leftUpperArm'),
+          lL:    h.getNormalizedBoneNode('leftLowerArm'),
+          lH:    h.getNormalizedBoneNode('leftHand'),
+          hips:  h.getNormalizedBoneNode('hips'),
+        };
+      }
+      set(m){ this.mode = m; }
+
+      update(dt){
+        this.t += dt;
+
+        // idle: breathe + gentle sway (always on)
+        const breathe = Math.sin(this.t*0.9)*0.02;
+        const sway = Math.sin(this.t*0.6)*0.1;
+        if(this.b.chest) this.b.chest.rotation.x = breathe;
+        if(this.b.spine) this.b.spine.rotation.y = sway*0.35;
+        if(this.b.head)  this.b.head.rotation.y = -sway*0.25;
+
+        if(this.mode === 'wave'){
+          const w = Math.sin(this.t*6.0);
+          if(this.b.rU) this.b.rU.rotation.z = -1.2; // arm up
+          if(this.b.rL) this.b.rL.rotation.z = -0.25;
+          if(this.b.rH) this.b.rH.rotation.y = w*0.6;
+        }else{
+          // reset right arm when not waving
+          if(this.b.rU) this.b.rU.rotation.z *= 0.9;
+          if(this.b.rL) this.b.rL.rotation.z *= 0.9;
+          if(this.b.rH) this.b.rH.rotation.y *= 0.8;
+        }
+      }
+    }
+
+    // --- Load both avatars and place them ---
+    const anchors = [new THREE.Group(), new THREE.Group()];
+    anchors[0].position.set(-0.8, 0, 0);
+    anchors[1].position.set( 0.8, 0, 0);
+    scene.add(anchors[0], anchors[1]);
+
+    const actors = [];
+    let duoMode = false, danceClock = 0;
+
+    Promise.all([ loadVRM(WHITE_STAR_URL), loadVRM(REY_CZAR_URL) ]).then(([ws, rc])=>{
+      anchors[0].add(ws.scene); anchors[1].add(rc.scene);
+      ws.scene.rotation.y =  Math.PI/12;
+      rc.scene.rotation.y = -Math.PI/12;
+      actors.push(new Actor('White Star', ws, anchors[0]));
+      actors.push(new Actor('Rey Czar',   rc, anchors[1]));
+    });
+
+    // --- Buttons ---
+    function on(id, fn){ document.getElementById(id).addEventListener('click', fn, {passive:true}); }
+    on('idleAll', ()=>actors.forEach(a=>a.set('idle')));
+    on('waveAll', ()=>actors.forEach(a=>a.set('wave')));
+    on('wsIdle',  ()=>actors[0]?.set('idle'));
+    on('wsWave',  ()=>actors[0]?.set('wave'));
+    on('rcIdle',  ()=>actors[1]?.set('idle'));
+    on('rcWave',  ()=>actors[1]?.set('wave'));
+    on('dance',   ()=>{ duoMode = true; });
+    on('stopDance',()=>{ duoMode = false; anchors[0].position.set(-0.8,0,0); anchors[1].position.set(0.8,0,0); });
+
+    // --- Resize / visibility (battery-friendly on iPad) ---
+    addEventListener('resize', ()=>{
+      camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    }, {passive:true});
+
+    let running = true;
+    document.addEventListener('visibilitychange', ()=>{ running = !document.hidden; });
+
+    // --- Render loop ---
+    const clock = new THREE.Clock();
+    (function loop(){
+      requestAnimationFrame(loop);
+      if(!running) return;
+      const dt = Math.min(clock.getDelta(), 1/30);
+
+      actors.forEach(a=>{
+        a.update(dt);
+        a.vrm.update(dt);
+      });
+
+      // Partner dance: orbit, face each other, simple hand swing
+      if(duoMode && actors.length===2){
+        danceClock += dt;
+        const r = 1.0;
+        anchors[0].position.set(Math.cos(danceClock)*r, 0, Math.sin(danceClock)*r);
+        anchors[1].position.set(Math.cos(danceClock+Math.PI)*r, 0, Math.sin(danceClock+Math.PI)*r);
+
+        // make them face each other
+        anchors[0].lookAt(anchors[1].position);
+        anchors[1].lookAt(anchors[0].position);
+
+        // encourage slight wave feel
+        actors[0].set('wave');
+        actors[1].set('wave');
+      }
+
+      controls.update();
+      renderer.render(scene, camera);
+    })();
+  </script>
+</body>
+</html>
