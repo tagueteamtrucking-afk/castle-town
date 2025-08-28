@@ -24,7 +24,7 @@ log(`Boot v3 • three@${VER} / three-vrm@2.0.7 • model: <code>${(modelURL||'�
 
 const canvas = document.getElementById("scene");
 const R = new T.WebGLRenderer({ canvas, antialias:true, alpha:true, powerPreference:"high-performance" });
-R.setPixelRatio(Math.min(1.5, window.devicePixelRatio||1));
+R.setPixelRatio(1.0);
 R.setSize(innerWidth, innerHeight);
 R.outputColorSpace = T.SRGBColorSpace;
 
