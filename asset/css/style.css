@@ -42,3 +42,17 @@
 #plaza-canvas-wrap{width:100%;border-radius:14px;border:1px dashed rgba(255,255,255,.16);background:rgba(255,255,255,.03);overflow:hidden}
 #plaza-canvas{display:block;width:100%;height:auto}
 .console{margin-top:10px;max-height:160px;overflow:auto;background:rgba(0,0,0,.35);padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.12)}
+/* === VRM canvas fit ===
+   Added minimally to avoid changing your existing theme.
+   Keeps whatever backgrounds/typography you already have. */
+html, body {
+  height: 100%;
+}
+
+#scene {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  /* Transparent so your existing page background shows through */
+  background: transparent;
+}
