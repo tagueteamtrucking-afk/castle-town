@@ -1,47 +1,48 @@
 <!doctype html><html lang="en"><head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<title>Palace — White Star & ReyCzar</title>
-<link rel="stylesheet" href="../asset/css/style.css"/><style>#scene{width:100vw;height:100vh}</style></head>
-<body data-title="Palace — White Star & ReyCzar" data-room="palace" data-bg="#0b0b12,#141328">
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Palace — Throne Room</title>
+<link rel="stylesheet" href="../asset/css/style.css"/>
+<style>html,body{height:100%}#scene{width:100vw;height:100vh}</style>
+</head>
+<body>
 <div class="topbar"><a href="../pages/plaza.html">← Plaza</a></div>
 <canvas id="scene"></canvas><div id="hud">Booting…</div>
 
-<!-- Inline mini-loader for two VRMs (kept here to keep shared file simple) -->
 <script type="module">
 const VER="0.152.2";
-const T=await import(`https://esm.sh/three@${VER}`),
-      {OrbitControls}=await import(`https://esm.sh/three@${VER}/examples/jsm/controls/OrbitControls.js`),
-      {GLTFLoader}=await import(`https://esm.sh/three@${VER}/examples/jsm/loaders/GLTFLoader.js`),
-      VRM=await import(`https://esm.sh/@pixiv/three-vrm@2.0.7?deps=three@${VER}`);
-const hud=document.getElementById('hud');const log=(m,c="")=>{const d=document.createElement('div');if(c)d.className=c;d.innerHTML=m;hud.appendChild(d);hud.scrollTop=hud.scrollHeight;};
+const THREE_URL=`https://esm.sh/three@${VER}`;
+const ORBIT_URL=`https://esm.sh/three@${VER}/examples/jsm/controls/OrbitControls.js`;
+const GLTF_URL=`https://esm.sh/three@${VER}/examples/jsm/loaders/GLTFLoader.js`;
+const VRM_URL=`https://esm.sh/@pixiv/three-vrm@2.0.7?deps=three@${VER}`;
+
+const T=await import(THREE_URL);
+const {OrbitControls}=await import(ORBIT_URL);
+const {GLTFLoader}=await import(GLTF_URL);
+const {VRMLoaderPlugin}=await import(VRM_URL);
+
+const hud=document.getElementById('hud');
+const log=(m,c="")=>{const d=document.createElement('div');if(c)d.className=c;d.innerHTML=m;hud.appendChild(d);hud.scrollTop=hud.scrollHeight;};
 
 const canvas=document.getElementById('scene');
-const R=new T.WebGLRenderer({canvas,antialias:true,alpha:true});R.setPixelRatio(Math.min(1.5,devicePixelRatio||1));R.setSize(innerWidth,innerHeight);R.outputColorSpace=T.SRGBColorSpace;
-const S=new T.Scene(), C=new T.PerspectiveCamera(42,innerWidth/innerHeight,.1,1200); C.position.set(0,1.7,3.7);
+const R=new T.WebGLRenderer({canvas,antialias:true,alpha:true});R.setPixelRatio(1.0);R.setSize(innerWidth,innerHeight);
+const S=new T.Scene();const C=new T.PerspectiveCamera(42,innerWidth/innerHeight,.1,1200);C.position.set(0,1.6,4.2);
 const ctl=new OrbitControls(C,R.domElement);ctl.target.set(0,1.5,0);ctl.enableDamping=true;
-document.body.style.background=`radial-gradient(60% 45% at 50% 12%, rgba(255,255,255,.06), rgba(0,0,0,0)), linear-gradient(180deg,#0b0b12 0%, #141328 100%)`;
 
-S.add(new T.HemisphereLight(0xffffff,0x223344,.9)); const sun=new T.DirectionalLight(0xffffff,1.05); sun.position.set(4,7,3); S.add(sun);
-const ground=new T.Mesh(new T.CircleGeometry(5.6,72),new T.MeshStandardMaterial({color:0x141721,metalness:.06,roughness:.94})); ground.rotation.x=-Math.PI/2; S.add(ground);
-const dais=new T.Mesh(new T.CylinderGeometry(1.5,1.6,.15,48),new T.MeshStandardMaterial({color:0x22253d,metalness:.2,roughness:.85})); dais.position.y=.075; S.add(dais);
+S.add(new T.HemisphereLight(0xffffff,0x223344,.9));const sun=new T.DirectionalLight(0xffffff,1.0);sun.position.set(3,6,3);S.add(sun);
 
-const fit=(target)=>{
-  const b=new T.Box3().setFromObject(target), s=b.getSize(new T.Vector3()), c=b.getCenter(new T.Vector3());
-  if(s.y>0){const sc=Math.min(3,Math.max(.2,1.7/s.y)); target.scale.setScalar(sc);}
-  const b2=new T.Box3().setFromObject(target), s2=b2.getSize(new T.Vector3()), c2=b2.getCenter(new T.Vector3());
-  const fov=C.fov*(Math.PI/180); const dist=(Math.max(s2.x,s2.y,s2.z)/Math.tan(fov/2))*1.28;
-  C.position.set(0, c2.y + s2.y*0.12, dist+0.4); ctl.target.copy(new T.Vector3(0,c2.y,0));
-};
+const dais=new T.Mesh(new T.CylinderGeometry(2.5,2.6,.25,48),new T.MeshStandardMaterial({color:0x202234,metalness:.2,roughness:.85}));dais.position.y=.125;S.add(dais);
+const throneL=new T.Mesh(new T.BoxGeometry(0.9,1.2,0.5),new T.MeshStandardMaterial({color:0x2f3357}));throneL.position.set(-1,0.6,-0.3);S.add(throneL);
+const throneR=throneL.clone();throneR.position.x=1;S.add(throneR);
 
-const L=new GLTFLoader();
-async function add(url,x){
-  const h=await fetch(url,{method:"HEAD",cache:"no-store"}); if(!h.ok){log(`❌ Missing ${url}`,"err");return null;}
-  const g=await new Promise((r,j)=>L.load(url,r,undefined,j)); const v=await VRM.VRM.from(g);
-  v.scene.traverse(o=>{if(o.isMesh){o.frustumCulled=false;}}); v.scene.position.x=x; S.add(v.scene); return v.scene;
+const loader=new GLTFLoader();loader.register(p=>new VRMLoaderPlugin(p));
+
+async function addVRM(url,x){
+  try{const g=await new Promise((res,rej)=>loader.load(url,res,undefined,rej));
+    const vrm=g.userData.vrm; vrm.scene.position.x=x; vrm.scene.traverse(o=>{if(o.isMesh){o.frustumCulled=false;}});S.add(vrm.scene);log("✅ "+url);}
+  catch(e){log("❌ "+url+" "+e,"err");}
 }
-const a=await add("../asset/models/whitestar.vrm",-0.9);
-const b=await add("../asset/models/reyczar.vrm",0.9);
-fit(a||b); log("✅ Palace ready","ok");
+await addVRM("../asset/models/whitestar.vrm?v=5",-1.1);
+await addVRM("../asset/models/reyczar.vrm?v=5",1.1);
 
 addEventListener("resize",()=>{C.aspect=innerWidth/innerHeight;C.updateProjectionMatrix();R.setSize(innerWidth,innerHeight);});
 (function loop(){ctl.update();R.render(S,C);requestAnimationFrame(loop);})();
