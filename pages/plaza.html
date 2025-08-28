@@ -6,175 +6,271 @@
 <title>Plaza — Fantasy Castle Town (Map)</title>
 <link rel="stylesheet" href="../asset/css/style.css"/>
 <style>
-  :root{ --ink:#0b0f16; --paper:#0e1220; --glow:#a5d6ff }
+  :root{
+    --glow:#a5d6ff; --ink:#0b0f16; --paper:#0e1220;
+  }
   html,body{height:100%}
   body{
-    margin:0;background:
+    margin:0;
+    background:
       radial-gradient(1200px 800px at 50% -15%,rgba(255,255,255,.08),transparent 60%),
       radial-gradient(900px 640px at 120% 110%,rgba(255,255,255,.06),transparent 60%),
       linear-gradient(180deg,#0a0e1a 0%, #0b1220 50%, #0a0e1a 100%);
     color:#e8ecff; overflow:hidden; touch-action:manipulation;
     font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
   }
-  .topbar{position:fixed;left:0;right:0;top:0;display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center;padding:.5rem .75rem;background:linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,0));z-index:10}
-  .topbar a{font:600 13px system-ui,Segoe UI,Roboto,Arial,sans-serif;padding:.35rem .6rem;border-radius:.45rem;text-decoration:none;background:rgba(255,255,255,.08);color:#e6e9ff;border:1px solid rgba(255,255,255,.15)}
+  .topbar{
+    position:fixed;left:0;right:0;top:0;display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center;
+    padding:.5rem .75rem;background:linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,0));z-index:10
+  }
+  .topbar a{
+    font:600 13px system-ui,Segoe UI,Roboto,Arial,sans-serif;padding:.35rem .6rem;border-radius:.45rem;
+    text-decoration:none;background:rgba(255,255,255,.08);color:#e6e9ff;border:1px solid rgba(255,255,255,.15)
+  }
   #mapwrap{position:fixed; inset:0; display:grid; place-items:center; z-index:1}
   svg{width:min(1600px, 100vw); height:min(1000px, 100vh); display:block}
   .tile{fill:rgba(255,255,255,.04); stroke:rgba(255,255,255,.15); stroke-width:1.5}
   .label{font:700 14px ui-monospace,Menlo,Consolas,monospace; letter-spacing:.02em; fill:#eaf1ff}
-  a.building{cursor:pointer} .halo{opacity:.0; transition:opacity .15s ease; filter:drop-shadow(0 0 10px rgba(165,214,255,.35)) drop-shadow(0 0 18px rgba(165,214,255,.25))}
-  a.building:focus-visible .halo, a.building:hover .halo{opacity:.8}
+  a.building{cursor:pointer}
+  .halo{opacity:.0; transition:opacity .15s ease; filter:drop-shadow(0 0 10px rgba(165,214,255,.35)) drop-shadow(0 0 18px rgba(165,214,255,.25))}
+  a.building:focus-visible .halo, a.building:hover .halo{opacity:.85}
   #ui{position:fixed; right:.75rem; bottom:.75rem; z-index:11; display:flex; gap:.4rem}
-  #ui button{background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.2); color:#eaf1ff;border-radius:.5rem; padding:.45rem .6rem; font:600 13px system-ui; backdrop-filter:blur(6px)}
-  #hud{position:fixed;left:.75rem;bottom:.75rem;z-index:11;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.18);border-radius:.5rem;padding:.5rem .65rem;font:12px ui-monospace,Menlo,Consolas,monospace;color:#cde1ff;max-width:60vw}
+  #ui button{
+    background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.2); color:#eaf1ff;
+    border-radius:.5rem; padding:.45rem .6rem; font:600 13px system-ui; backdrop-filter:blur(6px)
+  }
+  #hud{position:fixed;left:.75rem;bottom:.75rem;z-index:11;background:rgba(0,0,0,.55);
+       border:1px solid rgba(255,255,255,.18);border-radius:.5rem;padding:.5rem .65rem;
+       font:12px ui-monospace,Menlo,Consolas,monospace;color:#cde1ff;max-width:60vw}
   #hud b{color:#a5d6ff}
 </style>
 </head>
 <body>
-  <div class="topbar"><a href="../index.html">Home</a></div>
+  <div class="topbar">
+    <a href="../index.html">Home</a>
+  </div>
+
   <div id="mapwrap">
+    <!-- Hand-drawn-style SVG map -->
     <svg viewBox="0 0 1600 1000" role="img" aria-label="Fantasy Castle Town map">
       <defs>
-        <radialGradient id="g-hollow" cx="50%" cy="40%"><stop offset="0" stop-color="#14201c"/><stop offset="1" stop-color="#0b1116"/></radialGradient>
-        <linearGradient id="g-path" x1="0" x2="1"><stop offset="0" stop-color="#2b2a1f"/><stop offset="1" stop-color="#3a3828"/></linearGradient>
-        <linearGradient id="g-water" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#0e1d33"/><stop offset="1" stop-color="#0a1420"/></linearGradient>
+        <radialGradient id="g-hollow" cx="50%" cy="40%">
+          <stop offset="0" stop-color="#14201c"/>
+          <stop offset="1" stop-color="#0b1116"/>
+        </radialGradient>
+        <linearGradient id="g-path" x1="0" x2="1">
+          <stop offset="0" stop-color="#2b2a1f"/>
+          <stop offset="1" stop-color="#3a3828"/>
+        </linearGradient>
+        <linearGradient id="g-water" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stop-color="#0e1d33"/>
+          <stop offset="1" stop-color="#0a1420"/>
+        </linearGradient>
       </defs>
+
+      <!-- Lake + island -->
       <ellipse cx="800" cy="520" rx="720" ry="420" fill="url(#g-water)" opacity=".25"/>
       <ellipse cx="800" cy="520" rx="640" ry="360" fill="url(#g-hollow)"/>
+      <!-- Central ring -->
       <circle cx="800" cy="520" r="240" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="3" />
       <circle cx="800" cy="520" r="245" fill="none" stroke="rgba(165,214,255,.20)" stroke-width="1" stroke-dasharray="6 8"/>
 
+      <!-- Paths -->
       <path d="M800,520 L800,260" stroke="url(#g-path)" stroke-width="18" opacity=".55"/>
       <path d="M800,520 L560,380" stroke="url(#g-path)" stroke-width="16" opacity=".5"/>
       <path d="M800,520 L1040,380" stroke="url(#g-path)" stroke-width="16" opacity=".5"/>
       <path d="M800,520 L560,680" stroke="url(#g-path)" stroke-width="16" opacity=".5"/>
       <path d="M800,520 L1040,680" stroke="url(#g-path)" stroke-width="16" opacity=".5"/>
 
-      <!-- Palace -->
-      <a class="building" xlink:href="../buildings/palace.html">
+      <!-- ===== Buildings (big tap targets) ===== -->
+
+      <!-- Palace — White Star & ReyCzar -->
+      <a class="building" xlink:href="../buildings/palace.html?v=5">
         <g transform="translate(800,220)">
           <ellipse class="tile" rx="120" ry="55"/>
           <g class="halo"><circle r="75" fill="none" stroke="#a5d6ff" stroke-width="2" stroke-dasharray="8 10"/></g>
           <g transform="translate(-36,-28) scale(1.2)">
-            <rect x="0" y="24" width="72" height="38" fill="#2b2e48"/><rect x="-8" y="10" width="24" height="28" fill="#2b2e48"/><rect x="56" y="10" width="24" height="28" fill="#2b2e48"/><rect x="28" y="0" width="16" height="20" fill="#2b2e48"/><rect x="30" y="44" width="12" height="18" fill="#0f1322"/>
+            <rect x="0" y="24" width="72" height="38" fill="#2b2e48"/>
+            <rect x="-8" y="10" width="24" height="28" fill="#2b2e48"/>
+            <rect x="56" y="10" width="24" height="28" fill="#2b2e48"/>
+            <rect x="28" y="0" width="16" height="20" fill="#2b2e48"/>
+            <rect x="30" y="44" width="12" height="18" fill="#0f1322"/>
           </g>
           <text class="label" text-anchor="middle" y="88">Palace — White Star & ReyCzar</text>
         </g>
       </a>
 
-      <!-- NW Abbey -->
-      <a class="building" xlink:href="../buildings/abbey.html">
+      <!-- Abbey — Grand Vault -->
+      <a class="building" xlink:href="../buildings/abbey.html?v=5">
         <g transform="translate(540,360)">
-          <ellipse class="tile" rx="110" ry="50"/><g class="halo"><circle r="68" fill="none" stroke="#ffd77a" stroke-width="2" stroke-dasharray="8 10"/></g>
-          <g transform="translate(-30,-20) scale(1.2)"><rect x="0" y="10" width="60" height="40" rx="8" fill="#483f2b"/><circle cx="30" cy="30" r="10" fill="#1a120a"/></g>
+          <ellipse class="tile" rx="110" ry="50"/>
+          <g class="halo"><circle r="68" fill="none" stroke="#ffd77a" stroke-width="2" stroke-dasharray="8 10"/></g>
+          <g transform="translate(-30,-20) scale(1.2)">
+            <rect x="0" y="10" width="60" height="40" rx="8" fill="#483f2b"/>
+            <circle cx="30" cy="30" r="10" fill="#1a120a"/>
+          </g>
           <text class="label" text-anchor="middle" y="78">Abbey — Grand Vault</text>
         </g>
       </a>
 
-      <!-- NE Billie -->
-      <a class="building" xlink:href="../buildings/billie.html">
+      <!-- Billie — Mansion (Stock Wall) -->
+      <a class="building" xlink:href="../buildings/billie.html?v=5">
         <g transform="translate(1060,360)">
-          <ellipse class="tile" rx="110" ry="50"/><g class="halo"><circle r="68" fill="none" stroke="#9dd5ff" stroke-width="2" stroke-dasharray="8 10"/></g>
-          <g transform="translate(-38,-20) scale(1.15)"><rect x="0" y="18" width="76" height="36" rx="6" fill="#213048"/><rect x="8" y="24" width="60" height="10" fill="#102238"/><rect x="8" y="36" width="60" height="10" fill="#102238"/></g>
+          <ellipse class="tile" rx="110" ry="50"/>
+          <g class="halo"><circle r="68" fill="none" stroke="#9dd5ff" stroke-width="2" stroke-dasharray="8 10"/></g>
+          <g transform="translate(-38,-20) scale(1.15)">
+            <rect x="0" y="18" width="76" height="36" rx="6" fill="#213048"/>
+            <rect x="8" y="24" width="60" height="10" fill="#102238"/>
+            <rect x="8" y="36" width="60" height="10" fill="#102238"/>
+          </g>
           <text class="label" text-anchor="middle" y="78">Billie — Mansion</text>
         </g>
       </a>
 
-      <!-- W Odessa -->
-      <a class="building" xlink:href="../buildings/odessa.html">
+      <!-- Odessa — Museum Mansion -->
+      <a class="building" xlink:href="../buildings/odessa.html?v=5">
         <g transform="translate(420,520)">
-          <ellipse class="tile" rx="110" ry="48"/><g class="halo"><circle r="65" fill="none" stroke="#ffc0d4" stroke-width="2" stroke-dasharray="8 10"/></g>
-          <g transform="translate(-40,-18) scale(1.1)"><rect x="0" y="20" width="80" height="34" fill="#40283a"/><rect x="10" y="10" width="60" height="16" fill="#40283a"/></g>
+          <ellipse class="tile" rx="110" ry="48"/>
+          <g class="halo"><circle r="65" fill="none" stroke="#ffc0d4" stroke-width="2" stroke-dasharray="8 10"/></g>
+          <g transform="translate(-40,-18) scale(1.1)">
+            <rect x="0" y="20" width="80" height="34" fill="#40283a"/>
+            <rect x="10" y="10" width="60" height="16" fill="#40283a"/>
+          </g>
           <text class="label" text-anchor="middle" y="76">Odessa — Museum Mansion</text>
         </g>
       </a>
 
-      <!-- E Sorcha -->
-      <a class="building" xlink:href="../buildings/sorcha.html">
+      <!-- Sorcha — Influencer Mansion -->
+      <a class="building" xlink:href="../buildings/sorcha.html?v=5">
         <g transform="translate(1180,520)">
-          <ellipse class="tile" rx="110" ry="48"/><g class="halo"><circle r="65" fill="none" stroke="#ff7aa8" stroke-width="2" stroke-dasharray="8 10"/></g>
-          <g transform="translate(-42,-20) scale(1.1)"><rect x="0" y="20" width="84" height="34" fill="#44203a"/><circle cx="22" cy="38" r="6" fill="#101020"/><rect x="34" y="30" width="36" height="16" fill="#101020"/></g>
+          <ellipse class="tile" rx="110" ry="48"/>
+          <g class="halo"><circle r="65" fill="none" stroke="#ff7aa8" stroke-width="2" stroke-dasharray="8 10"/></g>
+          <g transform="translate(-42,-20) scale(1.1)">
+            <rect x="0" y="20" width="84" height="34" fill="#44203a"/>
+            <circle cx="22" cy="38" r="6" fill="#101020"/>
+            <rect x="34" y="30" width="36" height="16" fill="#101020"/>
+          </g>
           <text class="label" text-anchor="middle" y="76">Sorcha — Influencer Mansion</text>
         </g>
       </a>
 
-      <!-- SW Nina -->
-      <a class="building" xlink:href="../buildings/nina.html">
+      <!-- Nina — Cyber/Steampunk Lab -->
+      <a class="building" xlink:href="../buildings/nina.html?v=5">
         <g transform="translate(540,680)">
-          <ellipse class="tile" rx="110" ry="48"/><g class="halo"><circle r="64" fill="none" stroke="#8fd1ff" stroke-width="2" stroke-dasharray="8 10"/></g>
-          <g transform="translate(-38,-18) scale(1.15)"><rect x="0" y="18" width="76" height="36" rx="6" fill="#163244"/><rect x="10" y="26" width="24" height="6" fill="#0b1e2b"/><rect x="40" y="26" width="24" height="6" fill="#0b1e2b"/></g>
+          <ellipse class="tile" rx="110" ry="48"/>
+          <g class="halo"><circle r="64" fill="none" stroke="#8fd1ff" stroke-width="2" stroke-dasharray="8 10"/></g>
+          <g transform="translate(-38,-18) scale(1.15)">
+            <rect x="0" y="18" width="76" height="36" rx="6" fill="#163244"/>
+            <rect x="10" y="26" width="24" height="6" fill="#0b1e2b"/>
+            <rect x="40" y="26" width="24" height="6" fill="#0b1e2b"/>
+          </g>
           <text class="label" text-anchor="middle" y="76">Nina — Cyber/Steam Lab</text>
         </g>
       </a>
 
-      <!-- SE Charlotte -->
-      <a class="building" xlink:href="../buildings/charlotte.html">
+      <!-- Charlotte — Relay Tower -->
+      <a class="building" xlink:href="../buildings/charlotte.html?v=5">
         <g transform="translate(1060,680)">
-          <ellipse class="tile" rx="110" ry="48"/><g class="halo"><circle r="64" fill="none" stroke="#b8dcff" stroke-width="2" stroke-dasharray="8 10"/></g>
-          <g transform="translate(-8,-30)"><rect x="-12" y="18" width="24" height="90" fill="#25384a"/><polygon points="-10,18 0,0 10,18" fill="#25384a"/><line x1="-12" y1="60" x2="12" y2="60" stroke="#7aa3d8" stroke-width="2"/><line x1="-12" y1="42" x2="12" y2="42" stroke="#7aa3d8" stroke-width="2"/></g>
+          <ellipse class="tile" rx="110" ry="48"/>
+          <g class="halo"><circle r="64" fill="none" stroke="#b8dcff" stroke-width="2" stroke-dasharray="8 10"/></g>
+          <g transform="translate(-8,-30)">
+            <rect x="-12" y="18" width="24" height="90" fill="#25384a"/>
+            <polygon points="-10,18 0,0 10,18" fill="#25384a"/>
+            <line x1="-12" y1="60" x2="12" y2="60" stroke="#7aa3d8" stroke-width="2"/>
+            <line x1="-12" y1="42" x2="12" y2="42" stroke="#7aa3d8" stroke-width="2"/>
+          </g>
           <text class="label" text-anchor="middle" y="76">Charlotte — Relay Tower</text>
         </g>
       </a>
 
-      <!-- S Themis -->
-      <a class="building" xlink:href="../buildings/themis.html">
+      <!-- Themis — Compliance -->
+      <a class="building" xlink:href="../buildings/themis.html?v=5">
         <g transform="translate(800,740)">
-          <ellipse class="tile" rx="110" ry="50"/><g class="halo"><circle r="66" fill="none" stroke="#9fead1" stroke-width="2" stroke-dasharray="8 10"/></g>
-          <g transform="translate(-36,-18) scale(1.1)"><rect x="0" y="18" width="72" height="36" fill="#1c2a2c"/><rect x="28" y="26" width="16" height="20" fill="#0d1718"/></g>
+          <ellipse class="tile" rx="110" ry="50"/>
+          <g class="halo"><circle r="66" fill="none" stroke="#9fead1" stroke-width="2" stroke-dasharray="8 10"/></g>
+          <g transform="translate(-36,-18) scale(1.1)">
+            <rect x="0" y="18" width="72" height="36" fill="#1c2a2c"/>
+            <rect x="28" y="26" width="16" height="20" fill="#0d1718"/>
+          </g>
           <text class="label" text-anchor="middle" y="78">Themis — Chamber of Compliance</text>
         </g>
       </a>
 
-      <!-- S Clarice -->
-      <a class="building" xlink:href="../buildings/clarice.html">
+      <!-- Clarice — City Hall -->
+      <a class="building" xlink:href="../buildings/clarice.html?v=5">
         <g transform="translate(960,780)">
-          <ellipse class="tile" rx="110" ry="46"/><g class="halo"><circle r="62" fill="none" stroke="#c7d0ff" stroke-width="2" stroke-dasharray="8 10"/></g>
-          <g transform="translate(-40,-16) scale(1.05)"><rect x="0" y="24" width="80" height="32" fill="#1b2230"/><polygon points="0,24 40,4 80,24" fill="#1b2230"/></g>
+          <ellipse class="tile" rx="110" ry="46"/>
+          <g class="halo"><circle r="62" fill="none" stroke="#c7d0ff" stroke-width="2" stroke-dasharray="8 10"/></g>
+          <g transform="translate(-40,-16) scale(1.05)">
+            <rect x="0" y="24" width="80" height="32" fill="#1b2230"/>
+            <polygon points="0,24 40,4 80,24" fill="#1b2230"/>
+          </g>
           <text class="label" text-anchor="middle" y="72">Clarice — City Hall</text>
         </g>
       </a>
 
-      <!-- S Carol -->
-      <a class="building" xlink:href="../buildings/carol.html">
+      <!-- Carol — Restaurant (by the Dojo) -->
+      <a class="building" xlink:href="../buildings/carol.html?v=5">
         <g transform="translate(640,780)">
-          <ellipse class="tile" rx="108" ry="46"/><g class="halo"><circle r="62" fill="none" stroke="#ffd09c" stroke-width="2" stroke-dasharray="8 10"/></g>
-          <g transform="translate(-38,-18) scale(1.05)"><rect x="0" y="26" width="76" height="30" fill="#3a2a1a"/><rect x="18" y="22" width="40" height="10" fill="#4d3520"/></g>
+          <ellipse class="tile" rx="108" ry="46"/>
+          <g class="halo"><circle r="62" fill="none" stroke="#ffd09c" stroke-width="2" stroke-dasharray="8 10"/></g>
+          <g transform="translate(-38,-18) scale(1.05)">
+            <rect x="0" y="26" width="76" height="30" fill="#3a2a1a"/>
+            <rect x="18" y="22" width="40" height="10" fill="#4d3520"/>
+          </g>
           <text class="label" text-anchor="middle" y="72">Carol — Restaurant (Dojo)</text>
         </g>
       </a>
 
-      <!-- N Stella -->
-      <a class="building" xlink:href="../buildings/stella.html">
-        <g transform="translate(640,260)">
-          <ellipse class="tile" rx="100" ry="42"/><g class="halo"><circle r="60" fill="none" stroke="#c8dcff" stroke-width="2" stroke-dasharray="8 10"/></g>
-          <g transform="translate(-30,-20)"><circle cx="0" cy="36" r="18" fill="#223044"/><rect x="18" y="22" width="54" height="28" fill="#223044"/></g>
-          <text class="label" text-anchor="middle" y="68">Stella — Observatory</text>
-        </g>
-      </a>
-
-      <!-- N Tracy -->
-      <a class="building" xlink:href="../buildings/tracy.html">
-        <g transform="translate(960,260)">
-          <ellipse class="tile" rx="100" ry="42"/><g class="halo"><circle r="60" fill="none" stroke="#d8c0ff" stroke-width="2" stroke-dasharray="8 10"/></g>
-          <g transform="translate(-30,-22)"><path d="M0,48 L0,24 Q30,0 60,24 L60,48 Z" fill="#2b1f33"/><rect x="24" y="34" width="12" height="12" fill="#120b16"/></g>
-          <text class="label" text-anchor="middle" y="68">Tracy — Cathedral Studio</text>
-        </g>
-      </a>
-
-      <!-- SSW Jem -->
-      <a class="building" xlink:href="../buildings/jem.html">
+      <!-- Jem — Dojo -->
+      <a class="building" xlink:href="../buildings/jem.html?v=5">
         <g transform="translate(540,840)">
-          <ellipse class="tile" rx="104" ry="42"/><g class="halo"><circle r="60" fill="none" stroke="#d9ffb3" stroke-width="2" stroke-dasharray="8 10"/></g>
-          <g transform="translate(-40,-14) scale(1.0)"><rect x="0" y="26" width="80" height="28" fill="#2a2c1e"/><polygon points="0,26 40,8 80,26" fill="#2a2c1e"/></g>
+          <ellipse class="tile" rx="104" ry="42"/>
+          <g class="halo"><circle r="60" fill="none" stroke="#d9ffb3" stroke-width="2" stroke-dasharray="8 10"/></g>
+          <g transform="translate(-40,-14) scale(1.0)">
+            <rect x="0" y="26" width="80" height="28" fill="#2a2c1e"/>
+            <polygon points="0,26 40,8 80,26" fill="#2a2c1e"/>
+          </g>
           <text class="label" text-anchor="middle" y="68">Jem — Dojo</text>
         </g>
       </a>
 
-      <!-- SSE Alexandria -->
-      <a class="building" xlink:href="../buildings/alexandria.html">
+      <!-- Stella — Observatory (northwest spur) -->
+      <a class="building" xlink:href="../buildings/stella.html?v=5">
+        <g transform="translate(640,260)">
+          <ellipse class="tile" rx="100" ry="42"/>
+          <g class="halo"><circle r="60" fill="none" stroke="#c8dcff" stroke-width="2" stroke-dasharray="8 10"/></g>
+          <g transform="translate(-30,-20)">
+            <circle cx="0" cy="36" r="18" fill="#223044"/>
+            <rect x="18" y="22" width="54" height="28" fill="#223044"/>
+          </g>
+          <text class="label" text-anchor="middle" y="68">Stella — Observatory</text>
+        </g>
+      </a>
+
+      <!-- Tracy — Cathedral Studio -->
+      <a class="building" xlink:href="../buildings/tracy.html?v=5">
+        <g transform="translate(960,260)">
+          <ellipse class="tile" rx="100" ry="42"/>
+          <g class="halo"><circle r="60" fill="none" stroke="#d8c0ff" stroke-width="2" stroke-dasharray="8 10"/></g>
+          <g transform="translate(-30,-22)">
+            <path d="M0,48 L0,24 Q30,0 60,24 L60,48 Z" fill="#2b1f33"/>
+            <rect x="24" y="34" width="12" height="12" fill="#120b16"/>
+          </g>
+          <text class="label" text-anchor="middle" y="68">Tracy — Cathedral Studio</text>
+        </g>
+      </a>
+
+      <!-- Alexandria — Library -->
+      <a class="building" xlink:href="../buildings/alexandria.html?v=5">
         <g transform="translate(960,840)">
-          <ellipse class="tile" rx="104" ry="42"/><g class="halo"><circle r="60" fill="none" stroke="#d0f0b0" stroke-width="2" stroke-dasharray="8 10"/></g>
-          <g transform="translate(-38,-14)"><rect x="0" y="26" width="76" height="28" fill="#23301c"/><rect x="8" y="30" width="60" height="6" fill="#121a10"/><rect x="8" y="40" width="60" height="6" fill="#121a10"/></g>
+          <ellipse class="tile" rx="104" ry="42"/>
+          <g class="halo"><circle r="60" fill="none" stroke="#d0f0b0" stroke-width="2" stroke-dasharray="8 10"/></g>
+          <g transform="translate(-38,-14)">
+            <rect x="0" y="26" width="76" height="28" fill="#23301c"/>
+            <rect x="8" y="30" width="60" height="6" fill="#121a10"/>
+            <rect x="8" y="40" width="60" height="6" fill="#121a10"/>
+          </g>
           <text class="label" text-anchor="middle" y="68">Alexandria — Library</text>
         </g>
       </a>
@@ -187,10 +283,12 @@
     <button id="center" aria-label="Center map">Center</button>
   </div>
 
-  <div id="hud">Tap a building to enter. This SVG map is fast on iPad.</div>
+  <div id="hud">Tap a building to enter. Map is pure SVG (super fast on iPad).</div>
 
 <script>
-  const svg=document.querySelector('svg'); let scale=1, tx=0, ty=0; const apply=()=>{svg.style.transform=`translate(${tx}px,${ty}px) scale(${scale})`; svg.style.transformOrigin='50% 50%';};
+  // Simple zoom/pan for SVG (buttons + drag). iPad pinch-zoom still works via Safari.
+  const svg=document.querySelector('svg'); let scale=1, tx=0, ty=0;
+  const apply=()=>{svg.style.transform=`translate(${tx}px,${ty}px) scale(${scale})`; svg.style.transformOrigin='50% 50%';};
   document.getElementById('zoomIn').onclick=()=>{scale=Math.min(2.0, +(scale+0.1).toFixed(2)); apply();};
   document.getElementById('zoomOut').onclick=()=>{scale=Math.max(0.7, +(scale-0.1).toFixed(2)); apply();};
   document.getElementById('center').onclick=()=>{scale=1; tx=ty=0; apply();};
