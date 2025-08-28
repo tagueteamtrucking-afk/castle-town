@@ -1,5 +1,30 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Abbey — Grand Vault</title><link rel="stylesheet" href="../asset/css/style.css"/><style>#scene{width:100vw;height:100vh}</style></head>
-<body data-title="Abbey — Grand Vault" data-room="vault" data-bg="#14121e,#0c0b12" data-model="../asset/models/abbey.vrm">
-<div class="topbar"><a href="../pages/plaza.html">← Plaza</a></div><canvas id="scene"></canvas><div id="hud">Booting…</div>
-<script type="module" src="../asset/js/vrm-room.js?v=3"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>Abbey — Grand Vault</title>
+<link rel="stylesheet" href="../asset/css/style.css"/>
+<style>
+  html,body{height:100%} #scene{width:100vw;height:100vh}
+  .topbar{position:fixed;left:0;right:0;top:0;padding:.5rem;text-align:center;z-index:10;
+          background:linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,0))}
+  .topbar a{color:#e6e9ff;text-decoration:none;font:600 13px system-ui,Segoe UI,Roboto,Arial}
+  #hud{position:fixed;right:.75rem;bottom:.75rem;max-width:60vw;max-height:40vh;overflow:auto;
+       font:12px/1.35 ui-monospace,Menlo,monospace;background:rgba(0,0,0,.65);color:#eaeaff;
+       padding:.6rem .7rem;border:1px solid rgba(255,255,255,.18);border-radius:.5rem;backdrop-filter:blur(6px);z-index:11}
+  #hud b{color:#a5d6ff}
+</style>
+</head>
+<body
+  data-title="Abbey — Grand Vault"
+  data-room="vault"
+  data-bg="#14121e,#0c0b12"
+  data-model="../asset/models/abbey.vrm?v=4">
+  <div class="topbar"><a href="../pages/plaza.html">← Plaza</a></div>
+  <canvas id="scene"></canvas>
+  <div id="hud">Booting…</div>
+
+  <script type="module" src="../asset/js/vrm-room.js?v=4"></script>
+</body>
+</html>
