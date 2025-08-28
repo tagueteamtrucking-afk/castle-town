@@ -1,0 +1,24 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Abbey — Grand Vault (Treasure Room)</title>
+<link rel="stylesheet" href="../asset/css/style.css"/><style>
+#hud{position:fixed;right:.75rem;bottom:.75rem;max-width:60vw;max-height:40vh;overflow:auto;font:12px/1.35 ui-monospace,Menlo,monospace;background:rgba(0,0,0,.65);color:#eaeaff;padding:.6rem .7rem;border:1px solid rgba(255,255,255,.18);border-radius:.5rem;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:9999}
+#hud b{color:#a5d6ff}.ok{color:#7dff9b}.err{color:#ff8aa5}#scene{display:block;width:100vw;height:100vh;background:transparent}
+.topbar{position:fixed;left:0;right:0;top:0;display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center;padding:.5rem;background:linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,0));z-index:9998}
+.topbar a{font:600 13px system-ui,Segoe UI,Roboto,Arial,sans-serif;padding:.35rem .6rem;border-radius:.45rem;text-decoration:none;background:rgba(255,255,255,.08);color:#e6e9ff;border:1px solid rgba(255,255,255,.15)}
+</style></head><body><div class="topbar"><a href="../pages/plaza.html">← Plaza</a></div><canvas id="scene"></canvas><div id="hud">Booting…</div>
+<script type="module">
+const hud=document.getElementById('hud');const log=(m,c="")=>{const p=document.createElement('div');if(c)p.className=c;p.innerHTML=m;hud.appendChild(p);hud.scrollTop=hud.scrollHeight;};
+const V="0.152.2",U=`https://esm.sh/three@${V}`,O=`https://esm.sh/three@${V}/examples/jsm/controls/OrbitControls.js`,G=`https://esm.sh/three@${V}/examples/jsm/loaders/GLTFLoader.js`,R=`https://esm.sh/@pixiv/three-vrm@2.0.7?deps=three@${V}`;
+let THREE,Orbit,GLTF,VRM;try{THREE=await import(U);({OrbitControls:Orbit}=await import(O));({GLTFLoader:GLTF}=await import(G));({VRM}=await import(R));log(`✅ Imports OK`,"ok");}catch(e){log(`❌ Import failed: ${e.message||e}`,"err");throw e;}
+const r=new THREE.WebGLRenderer({canvas:scene,antialias:true,alpha:true});r.setPixelRatio(Math.min(devicePixelRatio,2));r.setSize(innerWidth,innerHeight);
+const s=new THREE.Scene(),c=new THREE.PerspectiveCamera(40,innerWidth/innerHeight,.1,1000);c.position.set(0.15,1.6,3.0);
+const ctl=new Orbit(c,scene);ctl.target.set(0,1.45,0);ctl.enableDamping=true;
+s.add(new THREE.HemisphereLight(0xffffff,0x444466,0.7));const d=new THREE.DirectionalLight(0xffffff,1.0);d.position.set(2.5,5,2);s.add(d);
+const g=new THREE.Mesh(new THREE.CircleGeometry(4.9,64),new THREE.MeshStandardMaterial({color:0x1a1a1f,metalness:.05,roughness:.95}));g.rotation.x=-Math.PI/2;s.add(g);
+const L=new GLTF(),url=`../asset/models/abbey.vrm`;
+const load=u=>new Promise((res,rej)=>{L.load(u,(gl)=>{VRM.from(gl).then(v=>{v.scene.traverse(o=>{if(o.isMesh){o.frustumCulled=false;o.castShadow=true;o.receiveShadow=true;}});s.add(v.scene);res(v);}).catch(rej);},undefined,(e)=>rej(e));});
+try{const h=await fetch(url,{method:"HEAD",cache:"no-store"});if(!h.ok)log(`❌ abbey.vrm missing`,"err");else{await load(url);log(`✅ Abbey loaded`,"ok");}}catch(e){log(`❌ Load error: ${e.message||e}`,"err");}
+addEventListener('resize',()=>{c.aspect=innerWidth/innerHeight;c.updateProjectionMatrix();r.setSize(innerWidth,innerHeight);});
+(function a(){ctl.update();r.render(s,c);requestAnimationFrame(a);})();
+</script></body></html>
