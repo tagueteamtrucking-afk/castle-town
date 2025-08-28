@@ -2,114 +2,135 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Fantasy Castle Town</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Fantasy Town — Plaza</title>
 
-  <!-- Styles -->
-  <link rel="stylesheet" href="asset/css/style.css">
-
-  <!-- Fallback loader libs (only used if no site engine is present) -->
-  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
-  <script src="https://unpkg.com/three@0.160.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="https://unpkg.com/@pixiv/three-vrm@2.0.6/lib/three-vrm.min.js"></script>
-
-  <!-- App JS -->
-  <script defer src="asset/js/main.js"></script>
+  <!-- Keep your existing styles exactly as-is -->
+  <link rel="stylesheet" href="asset/css/style.css" />
 </head>
-<body class="town-body">
+<body>
 
-  <!-- ======= TOWN VIEWER (3D) ======= -->
-  <header class="town-header glass">
-    <h1>Fantasy Castle Town</h1>
-    <p class="subtitle">This is your live 3D plaza. Use the buttons to load models; the cards below also load into this viewer.</p>
-  </header>
+  <!-- Non-intrusive: one canvas for the 3D scene -->
+  <canvas id="scene"></canvas>
 
-  <section class="plaza-main" id="viewer">
-    <div class="plaza-card glass">
-      <h2>Town Viewer</h2>
-      <p>The models render here. If it’s blank, check the log below for path errors.</p>
-      <div id="plaza-canvas-wrap"><canvas id="town-canvas"></canvas></div>
-      <div class="btn-row" style="margin-top:12px">
-        <button class="btn btn-primary btn-xl" onclick="loadAllCharacters()">✨ Summon All 15</button>
-        <button class="btn btn-outline" onclick="try{clearCharacters&&clearCharacters()}catch(e){}">⛔ Clear</button>
-      </div>
-      <small class="helper">Tip: VRM files live in <code>asset/models/</code> — lowercase, no spaces.</small>
-      <pre id="log" class="console"></pre>
-    </div>
-  </section>
+  <!-- ES modules, version-pinned for stability -->
+  <script type="module">
+    import * as THREE from "https://unpkg.com/three@0.152.2/build/three.module.js";
+    import { OrbitControls } from "https://unpkg.com/three@0.152.2/examples/jsm/controls/OrbitControls.js";
+    import { GLTFLoader } from "https://unpkg.com/three@0.152.2/examples/jsm/loaders/GLTFLoader.js";
+    import { VRM, VRMUtils } from "https://unpkg.com/@pixiv/three-vrm@2.0.7/lib/three-vrm.module.js";
 
-  <!-- ======= MENU CARDS (clicks load into the viewer above) ======= -->
-  <main class="town-grid">
+    // Renderer
+    const canvas = document.getElementById('scene');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
 
-    <a class="card glass" href="#" onclick="loadAllCharacters();document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
-      <div class="tag">Plaza</div>
-      <h2>Plaza (Load many characters together)</h2>
-      <p>Summon all 15 assistants into the square.</p>
-    </a>
+    // Scene + camera
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 1.5, 6);
 
-    <a class="card glass" href="#" onclick="loadCharacter('stella','asset/models/stella.vrm','Observatory & Apothecary');document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
-      <div class="tag">Observatory & Apothecary</div><h2>Stella</h2><p>Yoga, meditation, sound therapy.</p>
-    </a>
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 1.4, 0);
+    controls.enableDamping = true;
 
-    <a class="card glass" href="#" onclick="loadCharacter('tracy','asset/models/tracy.vrm','Cathedral Studio');document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
-      <div class="tag">Cathedral Studio</div><h2>Tracy</h2><p>Creative director and image lab.</p>
-    </a>
+    // Lights (subtle so your theme remains dominant)
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x444466, 0.7);
+    hemi.position.set(0, 10, 0);
+    scene.add(hemi);
 
-    <a class="card glass" href="#" onclick="loadCharacter('alexandria','asset/models/alexandria.vrm','Grand Library');document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
-      <div class="tag">Grand Library</div><h2>Alexandria</h2><p>Keeper of the codex and records.</p>
-    </a>
+    const dir = new THREE.DirectionalLight(0xffffff, 0.9);
+    dir.position.set(3, 5, 2);
+    scene.add(dir);
 
-    <a class="card glass" href="#" onclick="loadCharacter('jem','asset/models/jem.vrm','Dojo');document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
-      <div class="tag">Dojo</div><h2>Jem</h2><p>Training, discipline, and flow.</p>
-    </a>
+    // Low-key ground to anchor shadows (nearly invisible)
+    const ground = new THREE.Mesh(
+      new THREE.CircleGeometry(6, 64),
+      new THREE.MeshStandardMaterial({ color: 0x1a1a1f, metalness: 0.05, roughness: 0.95 })
+    );
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = 0;
+    ground.receiveShadow = true;
+    scene.add(ground);
 
-    <a class="card glass" href="#" onclick="loadCharacter('carol','asset/models/carol.vrm','Restaurant');document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
-      <div class="tag">Restaurant</div><h2>Carol</h2><p>Hospitality and events.</p>
-    </a>
+    // VRM loader
+    const loader = new GLTFLoader();
+    const vrmNames = [
+      "stella","tracy","alexandria","jem","carol",
+      "nina","charlotte","abbey","billie","odessa",
+      "sorcha","themis","clarice","whitestar","reyczar"
+    ];
 
-    <a class="card glass" href="#" onclick="loadCharacter('nina','asset/models/nina.vrm','Blue Lab');document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
-      <div class="tag">Blue Lab</div><h2>Nina</h2><p>Steam/cyber-punk experiments.</p>
-    </a>
+    const vrms = [];
 
-    <a class="card glass" href="#" onclick="loadCharacter('charlotte','asset/models/charlotte.vrm','Relay Tower');document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
-      <div class="tag">Relay Tower</div><h2>Charlotte</h2><p>Signals and comms.</p>
-    </a>
+    function placeVRMsInCircle() {
+      const r = 3.3;
+      const y = 0;
+      vrms.forEach((vrm, i) => {
+        const t = (i / vrms.length) * Math.PI * 2;
+        const x = Math.cos(t) * r;
+        const z = Math.sin(t) * r;
+        vrm.scene.position.set(x, y, z);
+        vrm.scene.lookAt(0, 1.4, 0);
+      });
+    }
 
-    <a class="card glass" href="#" onclick="loadCharacter('abbey','asset/models/abbey.vrm','Grand Vault');document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
-      <div class="tag">Grand Vault</div><h2>Abbey</h2><p>Secure assets and variants.</p>
-    </a>
+    function loadVRM(url) {
+      return new Promise((resolve, reject) => {
+        loader.load(
+          url,
+          (gltf) => {
+            VRM.from(gltf).then((vrm) => {
+              VRMUtils.removeUnnecessaryJoints(vrm.scene);
+              vrm.scene.traverse((o) => {
+                if (o.isMesh) {
+                  o.frustumCulled = false;
+                  o.castShadow = true;
+                  o.receiveShadow = true;
+                }
+              });
+              scene.add(vrm.scene);
+              vrms.push(vrm);
+              placeVRMsInCircle();
+              resolve(vrm);
+            }).catch(reject);
+          },
+          undefined,
+          (err) => reject(err)
+        );
+      });
+    }
 
-    <a class="card glass" href="#" onclick="loadCharacter('billie','asset/models/billie.vrm','Art Sales Mansion');document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
-      <div class="tag">Art Sales Mansion</div><h2>Billie</h2><p>Galleries and storefronts.</p>
-    </a>
+    (async () => {
+      for (const name of vrmNames) {
+        const url = `asset/models/${name}.vrm`; // matches your structure
+        try {
+          await loadVRM(url);
+          console.log(`Loaded: ${url}`);
+        } catch (e) {
+          console.error(`[error] VRM load failed: ${url}`, e);
+        }
+      }
+    })();
 
-    <a class="card glass" href="#" onclick="loadCharacter('odessa','asset/models/odessa.vrm','Museum Mansion');document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
-      <div class="tag">Museum Mansion</div><h2>Odessa</h2><p>Curator of artifacts.</p>
-    </a>
+    // Resize
+    window.addEventListener('resize', () => {
+      const w = window.innerWidth, h = window.innerHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    });
 
-    <a class="card glass" href="#" onclick="loadCharacter('sorcha','asset/models/sorcha.vrm','Social Mansion');document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
-      <div class="tag">Social Mansion</div><h2>Sorcha</h2><p>Content, video, and socials.</p>
-    </a>
-
-    <a class="card glass" href="#" onclick="loadCharacter('themis','asset/models/themis.vrm','Chamber of Compliance');document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
-      <div class="tag">Chamber of Compliance</div><h2>Themis</h2><p>Policies and order.</p>
-    </a>
-
-    <a class="card glass" href="#" onclick="loadCharacter('clarice','asset/models/clarice.vrm','City Hall');document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
-      <div class="tag">City Hall</div><h2>Clarice</h2><p>Civic operations.</p>
-    </a>
-
-    <a class="card glass" href="#" onclick="loadCharacter('whitestar','asset/models/whitestar.vrm','Palace');document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
-      <div class="tag">Palace</div><h2>White Star</h2><p>Royal wing.</p>
-    </a>
-
-    <a class="card glass" href="#" onclick="loadCharacter('reyczar','asset/models/reyczar.vrm','Palace');document.getElementById('viewer').scrollIntoView({behavior:'smooth'});return false;">
-      <div class="tag">Palace</div><h2>Rey Czar</h2><p>Royal wing.</p>
-    </a>
-  </main>
-
-  <footer class="town-footer glass">
-    <small>Tip: VRM files live in <code>asset/models/</code> — lowercase, no spaces.</small>
-  </footer>
+    // Animate
+    const clock = new THREE.Clock();
+    function animate() {
+      clock.getDelta(); // reserved for future animation
+      controls.update();
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
 </body>
 </html>
