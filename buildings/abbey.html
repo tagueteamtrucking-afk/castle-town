@@ -1,44 +1,7 @@
-<!-- CC0 -->
-<!doctype html><html lang="en"><head>
-<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Abbey — Grand Vault (Treasure Room)</title>
-<link rel="stylesheet" href="../asset/css/style.css"/>
-<style>
-html,body{height:100%} #scene{width:100vw;height:100vh}
-body{background:linear-gradient(180deg,#0c0b12 0%,#14121e 60%,#0c0b12 100%)}
-#hud{position:fixed;right:.75rem;bottom:.75rem;max-width:60vw;font:12px ui-monospace,Menlo,Consolas;background:rgba(0,0,0,.6);color:#eaeaff;padding:.6rem .7rem;border:1px solid rgba(255,255,255,.18);border-radius:.5rem;z-index:9}
-svg.scenery{position:fixed;inset:0;pointer-events:none;opacity:.85}
-</style></head><body>
-<div class="topbar" style="position:fixed;left:0;right:0;top:0;display:flex;justify-content:center;gap:.6rem;padding:.5rem;background:linear-gradient(180deg,rgba(0,0,0,.55),transparent);z-index:9">
-  <a href="../pages/plaza.html" style="font:600 13px system-ui;padding:.35rem .6rem;border-radius:.45rem;background:rgba(255,255,255,.08);color:#e6e9ff;border:1px solid rgba(255,255,255,.15)">← Plaza</a>
-  <span style="color:#ffd77a;font:600 13px system-ui">Treasure Room</span>
-</div>
-<!-- CC0 vault scenery -->
-<svg class="scenery" viewBox="0 0 100 56" preserveAspectRatio="none">
-  <rect x="0" y="44" width="100" height="12" fill="#0f0f15"/>
-  <circle cx="80" cy="24" r="10" fill="#3a3426" stroke="#7e6a3b" stroke-width=".6"/>
-  <line x1="80" y1="14" x2="80" y2="34" stroke="#7e6a3b" stroke-width=".6"/>
-  <line x1="70" y1="24" x2="90" y2="24" stroke="#7e6a3b" stroke-width=".6"/>
-  <g fill="#6d5b2f" stroke="#ad9853" stroke-width=".4">
-    <circle cx="20" cy="40" r="3"/><circle cx="26" cy="41" r="2.6"/><circle cx="23" cy="44" r="2.3"/>
-    <circle cx="32" cy="41" r="2.8"/><circle cx="38" cy="40" r="2.5"/><circle cx="34" cy="44" r="2.2"/>
-  </g>
-</svg>
+<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Abbey — Grand Vault</title><link rel="stylesheet" href="../asset/css/style.css"/><style>#scene{width:100vw;height:100vh}</style></head>
+<body data-title="Abbey — Grand Vault" data-room="vault" data-bg="#14121e,#0c0b12" data-model="../asset/models/abbey.vrm">
+<div class="topbar"><a href="../pages/plaza.html">← Plaza</a></div>
 <canvas id="scene"></canvas><div id="hud">Booting…</div>
-<script type="module">
-const hud=document.getElementById('hud');const log=m=>hud.innerHTML+=`<div>${m}</div>`;
-const V="0.152.2",TH=`https://esm.sh/three@${V}`,OB=`https://esm.sh/three@${V}/examples/jsm/controls/OrbitControls.js`,GL=`https://esm.sh/three@${V}/examples/jsm/loaders/GLTFLoader.js`,VR=`https://esm.sh/@pixiv/three-vrm@2.0.7?deps=three@${V}`;
-let T,Orbit,Load,VRM;try{T=await import(TH);({OrbitControls:Orbit}=await import(OB));({GLTFLoader:Load}=await import(GL));({VRM}=await import(VR));log("✅ Imports OK");}catch(e){log("❌ Import failed: "+e.message);throw e;}
-const canvas=document.getElementById('scene'),R=new T.WebGLRenderer({canvas,antialias:true,alpha:true});R.setPixelRatio(Math.min(devicePixelRatio||1,2));R.setSize(innerWidth,innerHeight);
-const S=new T.Scene(),C=new T.PerspectiveCamera(40,innerWidth/innerHeight,.1,1000);const ctl=new Orbit(C,R.domElement);ctl.enableDamping=true;
-S.add(new T.HemisphereLight(0xffffff,0x444466,.74));const d=new T.DirectionalLight(0xffffff,1);d.position.set(2.5,5,2);S.add(d);
-const floor=new T.Mesh(new T.CircleGeometry(5,64),new T.MeshStandardMaterial({color:0x1b1a1f,metalness:.08,roughness:.92}));floor.rotation.x=-Math.PI/2;S.add(floor);
-const L=new Load();const fitToObject=(obj,camera,margin=1.2)=>{const b=new T.Box3().setFromObject(obj);const s=b.getSize(new T.Vector3());const c=b.getCenter(new T.Vector3());const fov=camera.fov*(Math.PI/180);let dist=Math.max(Math.max(s.x,s.y,s.z)/Math.tan(fov/2),1.5);dist*=margin;camera.position.set(c.x,c.y+s.y*0.15,c.z+dist);camera.lookAt(c);ctl.target.copy(c);};
-const url="../asset/models/abbey.vrm";
-try{const h=await fetch(url,{method:"HEAD",cache:"no-store"});if(!h.ok){log("⚠️ abbey.vrm missing");}else{
-  L.load(url,(g)=>{VRM.from(g).then(v=>{v.scene.traverse(o=>{if(o.isMesh){o.frustumCulled=false;o.castShadow=o.receiveShadow=true;}});S.add(v.scene);fitToObject(v.scene,C,1.25);}).catch(e=>log("❌ VRM parse: "+e.message));});
-}}catch(e){log("❌ Load error: "+e.message);}
-addEventListener('resize',()=>{C.aspect=innerWidth/innerHeight;C.updateProjectionMatrix();R.setSize(innerWidth,innerHeight)});
-canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();location.reload();});
-(function loop(){R.render(S,C);ctl.update();requestAnimationFrame(loop);})();
-</script></body></html>
+<script type="module" src="../asset/js/vrm-room.js"></script>
+</body></html>
